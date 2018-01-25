@@ -262,13 +262,6 @@ public abstract class NetworkParameters {
     }
 
     /**
-     * Throws an exception if the block's difficulty is not correct.
-     *
-     * @throws VerificationException if the block's difficulty is not correct.
-     */
-    public abstract void checkDifficultyTransitions(StoredBlock storedPrev, Block next, final BlockStore blockStore, final AbstractBlockChain blockChain) throws VerificationException, BlockStoreException;
-
-    /**
      * Returns true if the block height is either not a checkpoint, or is a checkpoint and the hash matches.
      */
     public boolean passesCheckpoint(int height, Sha256Hash hash) {
@@ -442,8 +435,8 @@ public abstract class NetworkParameters {
     public abstract boolean hasMaxMoney();
 
     /**
-     * the default {@link MessageSerializer} for this network. This is a shared serializer.
-     * @return the default {@link MessageSerializer} for this network. This is a shared serializer.
+     * Return the default serializer for this network. This is a shared serializer.
+     * @return the default serializer
      */
     public final MessageSerializer getDefaultSerializer() {
         // Construct a default serializer if we don't have one

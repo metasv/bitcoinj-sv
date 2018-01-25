@@ -63,7 +63,6 @@ public class TestNet2Params extends AbstractBitcoinNetParams {
         majorityRejectBlockOutdated = TESTNET_MAJORITY_REJECT_BLOCK_OUTDATED;
         majorityWindow = TESTNET_MAJORITY_WINDOW;
 
-        cashHardForkActivationTime = 1510600000;
         cashAddrPrefix = "bchtest";
         // Nov, 13 hard fork
         daaUpdateHeight = 1188697;
