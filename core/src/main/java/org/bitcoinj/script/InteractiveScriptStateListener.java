@@ -1,6 +1,5 @@
 package org.bitcoinj.script;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import org.bitcoinj.core.*;
 import org.bitcoinj.params.MainNetParams;
 
