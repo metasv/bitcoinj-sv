@@ -1443,7 +1443,7 @@ public class Script {
             throw new ScriptException("OP_IF/OP_NOTIF without OP_ENDIF");
 
         if (scriptStateListener != null) {
-            scriptStateListener.onScriptComplete();
+            scriptStateListener.onScriptSuccess();
         }
 
     }

@@ -17,6 +17,8 @@ import java.util.Set;
  *
  * This class is not recommended for real world use.  Only for testing and debugging scripts.
  *
+ * See the tools project for an example implementation InteractiveScriptStateListener
+ *
  * Created by shadders on 7/02/18.
  */
 public abstract class ScriptStateListener {
@@ -75,7 +77,7 @@ public abstract class ScriptStateListener {
     /**
      * Called at the very end of the script.  If this method is called the script has completed successfuly.
      */
-    public abstract void onScriptComplete();
+    public abstract void onScriptSuccess();
 
     public Transaction getTxContainingThis() {
         return txContainingThis;
