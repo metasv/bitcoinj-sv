@@ -2,10 +2,7 @@ package org.bitcoinj.tools;
 
 import org.bitcoinj.core.*;
 import org.bitcoinj.params.MainNetParams;
-import org.bitcoinj.script.Script;
-import org.bitcoinj.script.ScriptChunk;
-import org.bitcoinj.script.ScriptOpCodes;
-import org.bitcoinj.script.ScriptStateListener;
+import org.bitcoinj.script.*;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -14,7 +11,7 @@ import java.util.regex.Pattern;
 import static org.bitcoinj.core.Utils.HEX;
 
 /**
- *A simple demonstration of ScriptStateListener that dumps the state of the state to console after each op code execution.
+ *A simple demonstration of ScriptStateListener that dumps the state of the script interpreter to console after each op code execution.
  *
  * Created by shadders on 7/02/18.
  */
@@ -25,9 +22,6 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
 
     public static void main(String[] args) {
 
-        /**
-         *
-         */
 
         NetworkParameters params = MainNetParams.get();
 
@@ -79,8 +73,13 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
     @Override
     public void onAfterOpCodeExectuted() {
 
-        List<ScriptChunk> remaining = getScript().chunks.subList(getChunkIndex(), getScript().chunks.size() - 1);
-        Script remainScript = new Script(remaining);
+        ScriptBuilder builder = new ScriptBuilder();
+
+        for (ScriptChunk chunk: getScriptChunks().subList(getChunkIndex(), getScriptChunks().size())) {
+            builder.addChunk(chunk);
+        }
+
+        Script remainScript = builder.build();
         String remainingString = truncateData(remainScript.toString());
         int startIndex = fullScriptString.indexOf(remainingString);
         String markedScriptString = fullScriptString.substring(0, startIndex) + "^" + fullScriptString.substring(startIndex);
@@ -96,8 +95,11 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
         if (reverseStack.isEmpty()) {
           System.out.println("empty");
         } else {
+            int index = 0;
             for (byte[] bytes : reverseStack) {
-                System.out.println(HEX.encode(bytes));
+
+                System.out.println(String.format("index[%s] len[%s] [%s]", index++, bytes.length, HEX.encode(bytes)));
+
             }
         }
         System.out.println();
@@ -138,8 +140,13 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
     }
 
     @Override
-    public void onScriptSuccess() {
-        System.out.println("Script success.");
+    public void onScriptComplete() {
+        List<byte[]> stack = getStack();
+        if (stack.isEmpty() || !Script.castToBool(stack.get(stack.size() - 1))) {
+            System.out.println("Script failed.");
+        } else {
+            System.out.println("Script success.");
+        }
     }
 
     private String truncateData(String scriptString) {

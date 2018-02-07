@@ -34,6 +34,7 @@ public abstract class ScriptStateListener {
 
     private int chunkIndex;
     private ScriptChunk currentChunk;
+    private List<ScriptChunk> scriptChunks;
 
 
     void setInitialState(@Nullable Transaction txContainingThis, long index,
@@ -47,6 +48,8 @@ public abstract class ScriptStateListener {
         this.ifStack = ifStack;
         this.value = value;
         this.verifyFlags = verifyFlags;
+
+        this.scriptChunks = script.chunks;
 
     }
 
@@ -77,7 +80,7 @@ public abstract class ScriptStateListener {
     /**
      * Called at the very end of the script.  If this method is called the script has completed successfuly.
      */
-    public abstract void onScriptSuccess();
+    public abstract void onScriptComplete();
 
     public Transaction getTxContainingThis() {
         return txContainingThis;
@@ -124,5 +127,9 @@ public abstract class ScriptStateListener {
      */
     public ScriptChunk getCurrentChunk() {
         return currentChunk;
+    }
+
+    public List<ScriptChunk> getScriptChunks() {
+        return scriptChunks;
     }
 }

@@ -791,7 +791,7 @@ public class Script {
     
     ////////////////////// Script verification and helpers ////////////////////////////////
     
-    private static boolean castToBool(byte[] data) {
+    public static boolean castToBool(byte[] data) {
         for (int i = 0; i < data.length; i++)
         {
             // "Can be negative zero" - Bitcoin Core (see OpenSSL's BN_bn2mpi)
@@ -1443,7 +1443,7 @@ public class Script {
             throw new ScriptException("OP_IF/OP_NOTIF without OP_ENDIF");
 
         if (scriptStateListener != null) {
-            scriptStateListener.onScriptSuccess();
+            scriptStateListener.onScriptComplete();
         }
 
     }
