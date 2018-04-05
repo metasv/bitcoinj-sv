@@ -33,23 +33,31 @@ public class InteractiveScriptStateListener extends ScriptStateListener {
 
         byte[] tx1Bytes = HEX.decode(rawTx1);
         Transaction tx1 = new Transaction(params, tx1Bytes);
+
         byte[] tx2Bytes = HEX.decode(rawtx2);
         Transaction tx2 = new Transaction(params, tx2Bytes);
+
         Script scriptPubKey = tx1.getOutput(0).getScriptPubKey();
         Script scriptSig = tx2.getInput(0).getScriptSig();
 
         LinkedList<byte[]> stack = new LinkedList();
 
-        ScriptStateListener listener = new InteractiveScriptStateListener();
+        ScriptStateListener listener = new InteractiveScriptStateListener(true);
+
+        Script script = null;
 
         System.out.println("\n***Executing scriptSig***\n");
-        Script script = scriptSig;
+        script = scriptSig;
         Script.executeDebugScript(null, 0, script, stack, Coin.ZERO, Script.ALL_VERIFY_FLAGS, listener);
 
         System.out.println("\n***Executing scriptPubKey***\n");
         script = scriptPubKey;
         Script.executeDebugScript(tx1, 0, script, stack, Coin.ZERO, Script.ALL_VERIFY_FLAGS, listener);
 
+//        TextScriptParser parser = new TextScriptParser(false, null);
+//        parser.addVariable("barry", "0x00112233");
+//        script = parser.parse("<barry> 2 add 4 sub");
+//        Script.executeDebugScript(tx1, 0, script, stack, Coin.ZERO, Script.ALL_VERIFY_FLAGS, listener);
 
     }
 
