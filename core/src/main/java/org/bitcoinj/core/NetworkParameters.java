@@ -88,6 +88,13 @@ public abstract class NetworkParameters {
     protected int majorityRejectBlockOutdated;
     protected int majorityWindow;
 
+    // Aug, 1 2017 hard fork
+    protected int uahfHeight;
+    // Nov, 13 2017 hard fork
+    protected int daaUpdateHeight;
+    // May, 15 2018 hard fork
+    protected long monolithActivationTime = 1526400000L;
+
     /**
      * See getId(). This may be null for old deserialized wallets. In that case we derive it heuristically
      * by looking at the port number.
@@ -388,6 +395,15 @@ public abstract class NetworkParameters {
     /** Returns the 4 byte header for BIP32 (HD) wallet - private key part. */
     public int getBip32HeaderPriv() {
         return bip32HeaderPriv;
+    }
+
+    public int getDAAUpdateHeight(){
+        return daaUpdateHeight;
+    }
+
+    /** MTP activation time for May 15th, 2018 upgrade **/
+    public long getMonolithActivationTime() {
+        return monolithActivationTime;
     }
 
     /**
