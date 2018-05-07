@@ -2,6 +2,7 @@
  * Copyright 2011 Google Inc.
  * Copyright 2014 Andreas Schildbach
  * Copyright 2017 Thomas König
+ * Copyright 2018 BitcoinJ-Cash Developers
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,14 +40,14 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
 import java.util.*;
 
 import static org.bitcoinj.core.Utils.HEX;
 import static org.bitcoinj.core.Utils.toByteArray;
 import static org.bitcoinj.script.Script.MAX_SCRIPT_ELEMENT_SIZE;
+import static org.bitcoinj.script.ScriptHelpers.parseScriptString;
+import static org.bitcoinj.script.ScriptHelpers.parseVerifyFlags;
 import static org.bitcoinj.script.ScriptOpCodes.OP_0;
-import static org.bitcoinj.script.ScriptOpCodes.OP_INVALIDOPCODE;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.*;
 import org.junit.Before;
@@ -236,56 +237,6 @@ public class ScriptTest {
         assertEquals("OP_0 push length", 0, stack.get(0).length);
     }
 
-
-    private Script parseScriptString(String string) throws IOException {
-        String[] words = string.split("[ \\t\\n]");
-
-        UnsafeByteArrayOutputStream out = new UnsafeByteArrayOutputStream();
-
-        for(String w : words) {
-            if (w.equals(""))
-                continue;
-            if (w.matches("^-?[0-9]*$")) {
-                // Number
-                long val = Long.parseLong(w);
-                if (val >= -1 && val <= 16)
-                    out.write(Script.encodeToOpN((int)val));
-                else
-                    Script.writeBytes(out, Utils.reverseBytes(Utils.encodeMPI(BigInteger.valueOf(val), false)));
-            } else if (w.matches("^0x[0-9a-fA-F]*$")) {
-                // Raw hex data, inserted NOT pushed onto stack:
-                out.write(HEX.decode(w.substring(2).toLowerCase()));
-            } else if (w.length() >= 2 && w.startsWith("'") && w.endsWith("'")) {
-                // Single-quoted string, pushed as data. NOTE: this is poor-man's
-                // parsing, spaces/tabs/newlines in single-quoted strings won't work.
-                Script.writeBytes(out, w.substring(1, w.length() - 1).getBytes(Charset.forName("UTF-8")));
-            } else if (ScriptOpCodes.getOpCode(w) != OP_INVALIDOPCODE) {
-                // opcode, e.g. OP_ADD or OP_1:
-                out.write(ScriptOpCodes.getOpCode(w));
-            } else if (w.startsWith("OP_") && ScriptOpCodes.getOpCode(w.substring(3)) != OP_INVALIDOPCODE) {
-                // opcode, e.g. OP_ADD or OP_1:
-                out.write(ScriptOpCodes.getOpCode(w.substring(3)));
-            } else {
-                throw new RuntimeException("Invalid Data");
-            }
-        }
-
-        return new Script(out.toByteArray());
-    }
-
-    private Set<VerifyFlag> parseVerifyFlags(String str) {
-        Set<VerifyFlag> flags = EnumSet.noneOf(VerifyFlag.class);
-        if (!"NONE".equals(str)) {
-            for (String flag : str.split(",")) {
-                try {
-                    flags.add(VerifyFlag.valueOf(flag));
-                } catch (IllegalArgumentException x) {
-                    log.debug("Cannot handle verify flag {} -- ignored.", flag);
-                }
-            }
-        }
-        return flags;
-    }
 
     @Test
     public void dataDrivenValidScripts() throws Exception {
