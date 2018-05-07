@@ -78,9 +78,13 @@ public class Script {
         SIGPUSHONLY, // Using a non-push operator in the scriptSig causes script failure (softfork safe, BIP62 rule 2).
         MINIMALDATA, // Require minimal encodings for all push operations and number encodings
         DISCOURAGE_UPGRADABLE_NOPS, // Discourage use of NOPs reserved for upgrades (NOP1-10)
+        MINIMALIF,
+        NULLFAIL,
         CLEANSTACK, // Require that only a single stack element remains after evaluation.
         CHECKLOCKTIMEVERIFY, // Enable CHECKLOCKTIMEVERIFY operation
-        ENABLESIGHASHFORKID,
+        CHECKSEQUENCEVERIFY,
+        SIGHASH_FORKID,
+        REPLAY_PROTECTION,
         MONOLITH_OPCODES // May 15, 2018 Hard fork
     }
     public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.allOf(VerifyFlag.class);
