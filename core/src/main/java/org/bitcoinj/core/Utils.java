@@ -81,6 +81,12 @@ public class Utils {
         return bytes;        
     }
 
+    public static byte[] uint32ToByteArrayBE(long val) {
+        byte[] out = new byte[4];
+        uint32ToByteArrayBE(val, out, 0);
+        return out;
+    }
+
     public static void uint32ToByteArrayBE(long val, byte[] out, int offset) {
         out[offset] = (byte) (0xFF & (val >> 24));
         out[offset + 1] = (byte) (0xFF & (val >> 16));
@@ -88,11 +94,23 @@ public class Utils {
         out[offset + 3] = (byte) (0xFF & val);
     }
 
+    public static byte[] uint32ToByteArrayLE(long val) {
+        byte[] out = new byte[4];
+        uint32ToByteArrayLE(val, out, 0);
+        return out;
+    }
+
     public static void uint32ToByteArrayLE(long val, byte[] out, int offset) {
         out[offset] = (byte) (0xFF & val);
         out[offset + 1] = (byte) (0xFF & (val >> 8));
         out[offset + 2] = (byte) (0xFF & (val >> 16));
         out[offset + 3] = (byte) (0xFF & (val >> 24));
+    }
+
+    public static byte[] uint64ToByteArrayLE(long val) {
+        byte[] out = new byte[8];
+        uint64ToByteArrayLE(val, out, 0);
+        return out;
     }
 
     public static void uint64ToByteArrayLE(long val, byte[] out, int offset) {
