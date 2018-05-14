@@ -14,7 +14,7 @@ Release notes are [here](docs/Releases.md).
 
 ### Technologies
 
-* Java 6 for the core modules, Java 8 for everything else
+* Java 7 for the core modules, Java 8 for everything else
 * [Maven 3+](http://maven.apache.org) - for building the project
 * [Google Protocol Buffers](https://github.com/google/protobuf) - for use with serialization and hardware communications
 
