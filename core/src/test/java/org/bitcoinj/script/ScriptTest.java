@@ -718,7 +718,7 @@ public class ScriptTest {
                     Assert.assertArrayEquals(bitwiseScript(first, secondOverflow, "CAT"), cat);
                     fail("CAT should fail when result is more than " + MAX_SCRIPT_ELEMENT_SIZE);
                 } catch (ScriptException e) {
-                    Assert.assertEquals("Push value size limit exceeded.", e.getMessage());
+                    Assert.assertEquals("attempted to push value on the stack that was too large", e.getMessage());
                 }
             }
 
@@ -740,8 +740,8 @@ public class ScriptTest {
         Assert.assertArrayEquals(B, executeMonolithScript(new ScriptBuilder().data(A_B).number(1).op(ScriptOpCodes.OP_SPLIT).build()));
         Assert.assertArrayEquals(EMPTY, executeMonolithScript(new ScriptBuilder().data(A_B).number(2).op(ScriptOpCodes.OP_SPLIT).build()));
 
-        executeFailedMonolithScript(new ScriptBuilder().op(ScriptOpCodes.OP_SPLIT).build(), "Invalid stack operation.");
-        executeFailedMonolithScript(new ScriptBuilder().data(EMPTY).number(1).op(ScriptOpCodes.OP_SPLIT).build(), "Invalid OP_SPLIT range.");
+        executeFailedMonolithScript(new ScriptBuilder().op(ScriptOpCodes.OP_SPLIT).build(), "the operation was invalid given the contents of the stack");
+        executeFailedMonolithScript(new ScriptBuilder().data(EMPTY).number(1).op(ScriptOpCodes.OP_SPLIT).build(), "invalid OP_SPLIT range");
     }
 
     /** BIN2NUM **/
@@ -757,20 +757,20 @@ public class ScriptTest {
         checkBin2NumOp(toByteArray(0xab, 0xcd, 0x7f, 0x42), toByteArray(0xab, 0xcd, 0x7f, 0x42, 0x00));
 
         // Empty stack
-        executeFailedMonolithScript(new ScriptBuilder().op(ScriptOpCodes.OP_BIN2NUM).build(), "Invalid stack operation.");
-        executeFailedMonolithScript(new ScriptBuilder().op(ScriptOpCodes.OP_NUM2BIN).build(), "Invalid stack operation.");
+        executeFailedMonolithScript(new ScriptBuilder().op(ScriptOpCodes.OP_BIN2NUM).build(), "the operation was invalid given the contents of the stack");
+        executeFailedMonolithScript(new ScriptBuilder().op(ScriptOpCodes.OP_NUM2BIN).build(), "the operation was invalid given the contents of the stack");
 
         // Values that do not fit in 4 bytes are considered out of range for BIN2NUM
-        executeFailedMonolithScript(new ScriptBuilder().data(toByteArray(0xab, 0xcd, 0xef, 0xc2, 0x80)).op(ScriptOpCodes.OP_BIN2NUM).build(), "Given operand is not a number within the valid range [-2^31...2^31]");
-        executeFailedMonolithScript(new ScriptBuilder().data(toByteArray(0x00, 0x00, 0x00, 0x80, 0x80)).op(ScriptOpCodes.OP_BIN2NUM).build(), "Given operand is not a number within the valid range [-2^31...2^31]");
+        executeFailedMonolithScript(new ScriptBuilder().data(toByteArray(0xab, 0xcd, 0xef, 0xc2, 0x80)).op(ScriptOpCodes.OP_BIN2NUM).build(), "operand is not a number in the valid range");
+        executeFailedMonolithScript(new ScriptBuilder().data(toByteArray(0x00, 0x00, 0x00, 0x80, 0x80)).op(ScriptOpCodes.OP_BIN2NUM).build(), "operand is not a number in the valid range");
 
         // NUM2BIN require 2 elements on the stack.
-        executeFailedMonolithScript(new ScriptBuilder().data(toByteArray( 0x00)).op(ScriptOpCodes.OP_NUM2BIN).build(), "Invalid stack operation.");
+        executeFailedMonolithScript(new ScriptBuilder().data(toByteArray( 0x00)).op(ScriptOpCodes.OP_NUM2BIN).build(), "the operation was invalid given the contents of the stack");
 
-        executeFailedMonolithScript(new ScriptBuilder().data(new byte[0]).data(toByteArray(0x09, 0x02)).op(ScriptOpCodes.OP_NUM2BIN).build(), "Push value size limit exceeded.");
+        executeFailedMonolithScript(new ScriptBuilder().data(new byte[0]).data(toByteArray(0x09, 0x02)).op(ScriptOpCodes.OP_NUM2BIN).build(), "attempted to push value on the stack that was too large");
 
         // Check that the requested encoding is possible.
-        executeFailedMonolithScript(new ScriptBuilder().data(toByteArray(0xab, 0xcd, 0xef, 0x80)).data(toByteArray(0x03)).op(ScriptOpCodes.OP_NUM2BIN).build(), "The requested encoding is impossible to satisfy.");
+        executeFailedMonolithScript(new ScriptBuilder().data(toByteArray(0xab, 0xcd, 0xef, 0x80)).data(toByteArray(0x03)).op(ScriptOpCodes.OP_NUM2BIN).build(), "attempted to push value on the stack that was too large");
     }
 
     private void checkBin2NumOp(byte[] n, byte[] expected) {
