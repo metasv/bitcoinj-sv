@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import org.bitcoinj.core.Coin;
-import org.bitcoinj.core.ScriptException;
 import org.bitcoinj.core.ScriptException.*;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.VerificationException;
@@ -156,7 +155,7 @@ public class ScriptDataDrivenTest {
             result = "STACK_SIZE";
         } catch (UnbalancedConditionalException e) {
             result = "UNBALANCED_CONDITIONAL";
-        } catch (VerifyException e) {
+        } catch (OpVerifyFailed e) {
             result = "VERIFY";
         } catch (VerificationException e) {
             result = "UNKNOWN_ERROR";

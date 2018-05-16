@@ -95,6 +95,10 @@ public class ScriptException extends VerificationException {
         public OpReturnException() { super("the script called OP_RETURN"); }
     }
 
+    public static class OpVerifyFailed extends ScriptException {
+        public OpVerifyFailed() { super("the VERIFY failed"); }
+    }
+
     public static class PubKeyCountException extends ScriptException {
         public PubKeyCountException() { super("there are too many, or not enough, public keys"); }
     }
@@ -129,9 +133,5 @@ public class ScriptException extends VerificationException {
 
     public static class UnbalancedConditionalException extends ScriptException {
         public UnbalancedConditionalException() { super("the script contains an unbalanced conditional"); }
-    }
-
-    public static class VerifyException extends ScriptException {
-        public VerifyException() { super("the VERIFY failed"); }
     }
 }
