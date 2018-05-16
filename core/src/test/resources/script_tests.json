@@ -1,4 +1,5 @@
 [
+["this file copied from the bitcoin-abc repository on 2018-05-16 - no copyright notice present"],
 ["Format is: [[wit..., amount]?, scriptSig, scriptPubKey, flags, expected_scripterror, ... comments]"],
 ["It is evaluated as if there was a crediting coinbase transaction with two 0"],
 ["pushes as scriptSig, and one output of 0 satoshi and given scriptPubKey,"],
