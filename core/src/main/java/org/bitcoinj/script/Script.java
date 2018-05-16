@@ -1073,7 +1073,7 @@ public class Script {
                     if (stack.isEmpty())
                         throw new InvalidStackOperationException();
                     if (!castToBool(stack.pollLast()))
-                        throw new VerifyException();
+                        throw new OpVerifyFailed();
                     break;
                 case OP_RETURN:
                     throw new OpReturnException();
