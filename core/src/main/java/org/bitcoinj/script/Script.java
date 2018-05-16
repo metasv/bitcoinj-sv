@@ -23,6 +23,7 @@
 package org.bitcoinj.script;
 
 import org.bitcoinj.core.*;
+import org.bitcoinj.core.VerificationException.*;
 import org.bitcoinj.core.ScriptException.*;
 import org.bitcoinj.crypto.TransactionSignature;
 import com.google.common.collect.Lists;
@@ -1746,14 +1747,8 @@ public class Script {
                         txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
                 sigValid = ECKey.verify(hash.getBytes(), sig, pubKey);
             }
-        } catch (Exception e1) {
-            // There is (at least) one exception that could be hit here (EOFException, if the sig is too short)
-            // Because I can't verify there aren't more, we use a very generic Exception catch
-
-            // This RuntimeException occurs when signing as we run partial/invalid scripts to see if they need more
-            // signing work to be done inside LocalTransactionSigner.signInputs.
-            if (!e1.getMessage().contains("Reached past end of ASN.1 stream"))
-                log.warn("Signature checking failed!", e1);
+        } catch (SignatureFormatError e) {
+            sigValid = false;
         }
 
         if (opcode == OP_CHECKSIG)
@@ -1813,24 +1808,23 @@ public class Script {
         }
 
         boolean valid = true;
-        while (sigs.size() > 0) {
+        while (! sigs.isEmpty()) {
             byte[] pubKey = pubkeys.pollFirst();
             // We could reasonably move this out of the loop, but because signature verification is significantly
             // more expensive than hashing, its not a big deal.
+            TransactionSignature sig;
             try {
                 if (checkSignatureEncoding(sigs.getFirst(),verifyFlags)) {
-                    TransactionSignature sig = TransactionSignature.decodeFromBitcoin(sigs.getFirst(), requireCanonical);
+                    sig = TransactionSignature.decodeFromBitcoin(sigs.getFirst(), requireCanonical);
                     Sha256Hash hash = sig.useForkId() ?
                             txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
                             txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
                     if (ECKey.verify(hash.getBytes(), sig, pubKey))
                         sigs.pollFirst();
                 }
-            } catch (Exception e) {
-                // There is (at least) one exception that could be hit here (EOFException, if the sig is too short)
-                // Because I can't verify there aren't more, we use a very generic Exception catch
+            } catch (SignatureFormatError e) {
+                // the sig failed to verify against the pubkey, but that's ok, lets move on to the next one
             }
-
             if (sigs.size() > pubkeys.size()) {
                 valid = false;
                 break;

@@ -714,15 +714,19 @@ public class ECKey implements EncryptableItem {
         }
 
         ECDSASigner signer = new ECDSASigner();
-        ECPublicKeyParameters params = new ECPublicKeyParameters(CURVE.getCurve().decodePoint(pub), CURVE);
-        signer.init(false, params);
         try {
+            ECPublicKeyParameters params = new ECPublicKeyParameters(CURVE.getCurve().decodePoint(pub), CURVE);
+            signer.init(false, params);
             return signer.verifySignature(data, signature.r, signature.s);
         } catch (NullPointerException e) {
             // Bouncy Castle contains a bug that can cause NPEs given specially crafted signatures. Those signatures
             // are inherently invalid/attack sigs so we just fail them here rather than crash the thread.
             log.error("Caught NPE inside bouncy castle", e);
             return false;
+        } catch (IllegalArgumentException e) {
+            throw new SignatureFormatError(e);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new SignatureFormatError(e);
         }
     }
 
