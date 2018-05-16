@@ -1736,14 +1736,16 @@ public class Script {
         // TODO: Use int for indexes everywhere, we can't have that many inputs/outputs
         boolean sigValid = false;
         try {
-            TransactionSignature sig  = TransactionSignature.decodeFromBitcoin(sigBytes, requireCanonical,
-                verifyFlags.contains(VerifyFlag.LOW_S));
+            if (checkSignatureEncoding(sigBytes, verifyFlags)) {
+                TransactionSignature sig = TransactionSignature.decodeFromBitcoin(sigBytes, requireCanonical,
+                        verifyFlags.contains(VerifyFlag.LOW_S));
 
-            // TODO: Should check hash type is known
-            Sha256Hash hash = sig.useForkId() ?
-                                txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
-                                txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
-            sigValid = ECKey.verify(hash.getBytes(), sig, pubKey);
+                // TODO: Should check hash type is known
+                Sha256Hash hash = sig.useForkId() ?
+                        txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
+                        txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
+                sigValid = ECKey.verify(hash.getBytes(), sig, pubKey);
+            }
         } catch (Exception e1) {
             // There is (at least) one exception that could be hit here (EOFException, if the sig is too short)
             // Because I can't verify there aren't more, we use a very generic Exception catch
@@ -1816,12 +1818,14 @@ public class Script {
             // We could reasonably move this out of the loop, but because signature verification is significantly
             // more expensive than hashing, its not a big deal.
             try {
-                TransactionSignature sig = TransactionSignature.decodeFromBitcoin(sigs.getFirst(), requireCanonical);
-                Sha256Hash hash = sig.useForkId() ?
-                        txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()):
-                        txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
-                if (ECKey.verify(hash.getBytes(), sig, pubKey))
-                    sigs.pollFirst();
+                if (checkSignatureEncoding(sigs.getFirst(),verifyFlags)) {
+                    TransactionSignature sig = TransactionSignature.decodeFromBitcoin(sigs.getFirst(), requireCanonical);
+                    Sha256Hash hash = sig.useForkId() ?
+                            txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
+                            txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
+                    if (ECKey.verify(hash.getBytes(), sig, pubKey))
+                        sigs.pollFirst();
+                }
             } catch (Exception e) {
                 // There is (at least) one exception that could be hit here (EOFException, if the sig is too short)
                 // Because I can't verify there aren't more, we use a very generic Exception catch
@@ -1932,6 +1936,18 @@ public class Script {
             if (!castToBool(p2shStack.pollLast()))
                 throw new EvalFalseException();
         }
+    }
+
+    /**
+     * checks whether the encoded signature looks to be validly encoded, depending on the flags supplied
+     * @return true if the signature appears to be validly encoded
+     */
+    private static boolean checkSignatureEncoding(byte[] sigBytes, Set<VerifyFlag> flags) {
+        if (sigBytes.length == 0) {
+            return false;
+        }
+        return !((flags.contains(VerifyFlag.STRICTENC) || flags.contains(VerifyFlag.DERSIG) || flags.contains(VerifyFlag.LOW_S))
+                        && !TransactionSignature.isEncodingCanonical(sigBytes));
     }
 
     // Utility that doesn't copy for internal use
