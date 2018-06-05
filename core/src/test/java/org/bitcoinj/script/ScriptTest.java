@@ -724,7 +724,7 @@ public class ScriptTest {
         executeFailedMonolithScript(new ScriptBuilder().data(new byte[0]).data(toByteArray(0x09, 0x02)).op(ScriptOpCodes.OP_NUM2BIN).build(), "attempted to push value on the stack that was too large");
 
         // Check that the requested encoding is possible.
-        executeFailedMonolithScript(new ScriptBuilder().data(toByteArray(0xab, 0xcd, 0xef, 0x80)).data(toByteArray(0x03)).op(ScriptOpCodes.OP_NUM2BIN).build(), "attempted to push value on the stack that was too large");
+        executeFailedMonolithScript(new ScriptBuilder().data(toByteArray(0xab, 0xcd, 0xef, 0x80)).data(toByteArray(0x03)).op(ScriptOpCodes.OP_NUM2BIN).build(), "the encoding is not possible");
     }
 
     private void checkBin2NumOp(byte[] n, byte[] expected) {

@@ -55,6 +55,10 @@ public class ScriptException extends VerificationException {
         public EvalFalseException() { super("script evaluated false"); }
     }
 
+    public static class ImpossibleEncoding extends ScriptException {
+        public ImpossibleEncoding() { super("the encoding is not possible"); }
+    }
+
     public static class InvalidAltStackOperationException extends ScriptException {
         public InvalidAltStackOperationException() { super("the operation was invalid given the contents of the altstack"); }
     }

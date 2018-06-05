@@ -125,6 +125,8 @@ public class ScriptDataDrivenTest {
             result = "EQUALVERIFY";
         } catch (EvalFalseException e) {
             result = "EVAL_FALSE";
+        } catch (ImpossibleEncoding e) {
+            result = "IMPOSSIBLE_ENCODING";
         } catch (InvalidAltStackOperationException e) {
             result = "INVALID_ALTSTACK_OPERATION";
         } catch (InvalidNumberRangeException e) {
