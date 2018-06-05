@@ -1273,7 +1273,7 @@ public class Script {
 
                     int numSize = castToBigInteger(stack.pollLast(), enforceMinimal).intValue();
 
-                    if (numSize > MAX_SCRIPT_ELEMENT_SIZE)
+                    if (numSize > MAX_SCRIPT_ELEMENT_SIZE || numSize < 0)
                         throw new PushSizeException();
 
                     byte[] rawNumBytes = stack.pollLast();
@@ -1283,7 +1283,7 @@ public class Script {
                     byte[] minimalNumBytes = Utils.minimallyEncodeLE(rawNumBytes);
                     if (minimalNumBytes.length > numSize) {
                         //we can't
-                        throw new PushSizeException();
+                        throw new ImpossibleEncoding();
                     }
 
                     if (minimalNumBytes.length == numSize) {
