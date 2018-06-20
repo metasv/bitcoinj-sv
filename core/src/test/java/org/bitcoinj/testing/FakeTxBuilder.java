@@ -88,8 +88,7 @@ public class FakeTxBuilder {
      */
     public static Transaction createFakeTxToMeWithReturnData(NetworkParameters params, Coin value, Address to, byte[] data) {
         Transaction t = new Transaction(params);
-        TransactionOutput outputToMe = new TransactionOutput(params, t, Coin.ZERO, ScriptBuilder.createOpReturnScript(data).getProgram());
-        t.addOutput(outputToMe);
+        t.addData(data);
 
         TransactionOutput change = new TransactionOutput(params, t, value, to);
         t.addOutput(change);

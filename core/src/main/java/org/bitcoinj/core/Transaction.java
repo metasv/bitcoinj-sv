@@ -968,6 +968,12 @@ public class Transaction extends ChildMessage {
         return addOutput(new TransactionOutput(params, this, value, address));
     }
 
+
+    public TransactionOutput addData(byte[] data) {
+        Script script = ScriptBuilder.createOpReturnScript(data);
+        return addOutput(new TransactionOutput(params, this, Coin.ZERO, script.getProgram()));
+    }
+
     /**
      * Creates an output that pays to the given pubkey directly (no address) with the given value, adds it to this
      * transaction, and returns the new output.
