@@ -156,6 +156,24 @@ public class Transaction extends ChildMessage {
     // can properly keep track of optimal encoded size
     private int optimalEncodingMessageSize;
 
+    public boolean isOpReturn() {
+        if (getOpReturnData() != null) {
+            return true;
+        }
+        return false;
+    }
+
+    public byte[] getOpReturnData() {
+        // Only one OP_RETURN output per transaction is allowed as "standard" transaction
+        // So just return the first OP_RETURN data found
+        for (TransactionOutput output : outputs) {
+            if (output.isOpReturn()) {
+                return output.getOpReturnData();
+            }
+        }
+        return null;
+    }
+
     /**
      * This enum describes the underlying reason the transaction was created. It's useful for rendering wallet GUIs
      * more appropriately.
