@@ -993,7 +993,10 @@ public class Script {
                 
                 if (!shouldExecute)
                     continue;
-                
+
+                if (enforceMinimal && !checkMinimalPush(chunk.opcode, chunk.data))
+                    throw new MinimalDataException();
+
                 stack.add(chunk.data);
             } else {
                 int opcode = chunk.opcode;
@@ -1011,7 +1014,10 @@ public class Script {
                     throw new DisabledOpcodeException();
                 }
 
+
+
                 switch (opcode) {
+
                 case OP_IF:
                     if (!shouldExecute) {
                         ifStack.add(false);
@@ -1019,6 +1025,12 @@ public class Script {
                     }
                     if (stack.isEmpty())
                         throw new UnbalancedConditionalException();
+
+                    // We check MINIMALIF Flag (IMPORTANT: We use peekLast, so the stack is not consumed)
+                    if (verifyFlags.contains(VerifyFlag.MINIMALIF) && !checkMinimalIf(stack.peekLast())) {
+                        throw new MinimalIfException();
+                    }
+
                     ifStack.add(castToBool(stack.pollLast()));
                     continue;
                 case OP_NOTIF:
@@ -1028,6 +1040,12 @@ public class Script {
                     }
                     if (stack.isEmpty())
                         throw new UnbalancedConditionalException();
+
+                    // We check MINIMALIF Flag (IMPORTANT: We use peekLast, so the stack is not consumed)
+                    if (verifyFlags.contains(VerifyFlag.MINIMALIF) && !checkMinimalIf(stack.peekLast())) {
+                        throw new MinimalIfException();
+                    }
+
                     ifStack.add(!castToBool(stack.pollLast()));
                     continue;
                 case OP_ELSE:
@@ -1637,8 +1655,17 @@ public class Script {
                     }
                     executeCheckLockTimeVerify(txContainingThis, (int) index, script, stack, lastCodeSepLocation, opcode, verifyFlags);
                     break;
+                case OP_CHECKSEQUENCEVERIFY:
+                    if (!verifyFlags.contains(VerifyFlag.CHECKSEQUENCEVERIFY)) {
+                        // not enabled; treat as a NOP2
+                        if (verifyFlags.contains(VerifyFlag.DISCOURAGE_UPGRADABLE_NOPS)) {
+                            throw new DiscourageUpgradableNopsException();
+                        }
+                        break;
+                    }
+                    executeCheckSequenceVerify(txContainingThis, (int) index, script, stack, verifyFlags);
+                    break;
                 case OP_NOP1:
-                case OP_NOP3:
                 case OP_NOP4:
                 case OP_NOP5:
                 case OP_NOP6:
@@ -1684,7 +1711,7 @@ public class Script {
         final BigInteger nLockTime = castToBigInteger(stack.getLast(), 5, verifyFlags.contains(VerifyFlag.MINIMALDATA));
 
         if (nLockTime.compareTo(BigInteger.ZERO) < 0)
-            throw new ScriptException("Negative locktime");
+            throw new NegativeLocktime();
 
         // There are two kinds of nLockTime, need to ensure we're comparing apples-to-apples
         if (!(
@@ -1696,7 +1723,7 @@ public class Script {
         // Now that we know we're comparing apples-to-apples, the
         // comparison is a simple numeric one.
         if (nLockTime.compareTo(BigInteger.valueOf(txContainingThis.getLockTime())) > 0)
-            throw new ScriptException("Locktime requirement not satisfied");
+            throw new UnsatisfiedLocktime("Locktime requirement not satisfied");
 
         // Finally the nLockTime feature can be disabled and thus
         // CHECKLOCKTIMEVERIFY bypassed if every txin has been
@@ -1704,12 +1731,115 @@ public class Script {
         // transaction would be allowed into the blockchain, making
         // the opcode ineffective.
         //
-        // Testing if this vin is not final is sufficient to
+        // ScriptCodification if this vin is not final is sufficient to
         // prevent this condition. Alternatively we could test all
         // inputs, but testing just this input minimizes the data
         // required to prove correct CHECKLOCKTIMEVERIFY execution.
         if (!txContainingThis.getInput(index).hasSequence())
-            throw new ScriptException("Transaction contains a final transaction input for a CHECKLOCKTIMEVERIFY script.");
+            throw new UnsatisfiedLocktime("Transaction contains a final transaction input for a CHECKLOCKTIMEVERIFY script.");
+    }
+
+    /**
+     * Implementation of the CHECKSEQUENCEVERIFY OpCode, as defined in BIP 112.
+     * Implementation from Bitcoin-abc used as a reference.
+     *
+     * @param txContainingThis          Transaction this script is included into
+     * @param index                     position within the script
+     * @param script                    Script to execute
+     * @param stack                     Script execution stack
+     * @param verifyFlags               Verification flags
+     */
+    @SuppressWarnings("Duplicates")
+    private static void executeCheckSequenceVerify(Transaction txContainingThis, int index, Script script, LinkedList<byte[]> stack,
+                                                   Set<VerifyFlag> verifyFlags) {
+        // If the stack is empty, we raise an Error
+        if (stack.isEmpty())
+            throw new InvalidStackOperationException();
+
+        // Thus as a special case we tell CScriptNum to accept up
+        // to 5-byte bignums to avoid year 2038 issue.
+        final BigInteger nSequence = castToBigInteger(stack.getLast(), 5, verifyFlags.contains(VerifyFlag.MINIMALDATA));
+
+        if (nSequence.compareTo(BigInteger.ZERO) < 0)
+            throw new NegativeLocktime();
+
+        // if the 31-bit bit is enabled, we continue with the execution, otherwise
+        // we do nothing else and let the rest of the script execute...
+        // 31 bit enabled = 0x80000000
+
+        BigInteger disabledFlagMask = new BigInteger("80000000", 16);
+        if (nSequence.and(disabledFlagMask).compareTo(BigInteger.ZERO) == 0)
+            if (!checkSequence(txContainingThis, nSequence, index))
+                throw new UnsatisfiedLocktime("Relative time lock requirement not satisfied");
+    }
+
+    /**
+     * Auxiliar method for the CHECKSEUQNCEVERUFY Op. It checks the nSequence from the top of the stack against
+     * The sequence in the transaction input.
+     *
+     * @param txContainingThis  Transaction this script is included into
+     * @param nSequence         nSequence (from the top of the stack, parameter of the CHECKSEQUENCEVERIFY opcode)
+     * @param vinIndex          transaction input index
+     * @return                  TRue (valid), False (invalid).
+     */
+    private static boolean checkSequence(Transaction txContainingThis, BigInteger nSequence, int vinIndex) {
+        boolean result = true;
+
+        // Regarding the nSequence value structure (both in the parameter from the
+        // topStck or the "nSequence" field from the input:
+
+        // - 3 important bit sets: DISABLED_FLAG, TYPE-FLAG and VALUE
+        //     - DISABLED FLAG is the most significant bit (31-bit, starting from 0).
+        //        (mask: 0x80000000)
+        //     - VALUE is the value of the 16 least significant bits
+        //        (mask: 0x0000FFFF)
+        //     - FLAG_TYPE is the 23th least-significant bit
+        //        (mask: 0x400000)
+        //          - if set, the VALUE is a multiple of 512 seconds
+        //          - if NOT set, the VALUE is the number of blocks
+
+        long disabledFlagMask = 0x80000000;
+        long typeFlagMask     = 1 << 22;
+        long valueFlagMask    = 0x0000FFFF;
+        long typeAndValueMask = typeFlagMask | valueFlagMask;
+
+        // Relative lock times are supported by comparing the passed in operand to
+        // the sequence number of the input.
+        long txToSequence = txContainingThis.getInputs().get(vinIndex).getSequenceNumber();
+
+        // Fails if the transaction's version number is not set high enough to
+        // trigger BIP 68 rules.
+        if (txContainingThis.getVersion() < 2) return false;
+
+        // Sequence numbers with their most significant bit set are not consensus
+        // constrained. Testing that the transaction's sequence number do not have
+        // this bit set prevents using this property to get around a
+        // CHECKSEQUENCEVERIFY check:
+
+        if ((txToSequence & disabledFlagMask) == 0)
+            return false;
+
+        // Mask off any bits that do not have consensus-enforced meaning before
+        // doing the integer comparisons:
+
+        long txToSequenceMasked = txToSequence | typeAndValueMask;
+        long nSequenceMasked = nSequence.longValue()  | typeAndValueMask;
+
+        // We want to compare apples to apples, so fail the script unless the type
+        // of nSequenceMasked being tested is the same as the nSequenceMasked in the
+        // transaction.
+
+        if (!( ((txToSequenceMasked < typeAndValueMask) && (nSequenceMasked < typeAndValueMask))
+                ||
+                ((txToSequenceMasked >= typeAndValueMask) && (nSequenceMasked >= typeAndValueMask))
+                ))
+            return false;
+
+        // Now that we know we're comparing apples-to-apples, the comparison is a
+        // simple numeric one.
+        if (nSequenceMasked > txToSequenceMasked) return false;
+
+        return result;
     }
 
     private static void executeCheckSig(Transaction txContainingThis, int index, Script script, LinkedList<byte[]> stack,
@@ -1750,6 +1880,12 @@ public class Script {
         } catch (SignatureFormatError e) {
             sigValid = false;
         }
+
+        // NULLFAIL Verification:
+        // If the NULLFAIL flag is active and the result of the Signature Verification is FALSE, we check
+        // that the signature is an empty Array...
+        if (verifyFlags.contains(VerifyFlag.NULLFAIL) && sigBytes.length > 0)
+            throw new NullFailException();
 
         if (opcode == OP_CHECKSIG)
             stack.add(sigValid ? new byte[] {1} : new byte[] {});
@@ -1836,6 +1972,13 @@ public class Script {
         if (verifyFlags.contains(VerifyFlag.NULLDUMMY) && nullDummy.length > 0)
             throw new NullDummyException();
 
+        // NULLFAIL Verification:
+        // If the NULLFAIL flag is active and the result of the Signature Verification is FALSE, we check
+        // that every signature involved is an empty Array...
+        if (verifyFlags.contains(VerifyFlag.NULLFAIL))
+            for (byte[] sig : sigs) if (sig.length > 0)
+                throw new NullFailException();
+
         if (opcode == OP_CHECKMULTISIG) {
             stack.add(valid ? new byte[] {1} : new byte[] {});
         } else if (opcode == OP_CHECKMULTISIGVERIFY) {
@@ -1889,12 +2032,14 @@ public class Script {
         
         LinkedList<byte[]> stack = new LinkedList<byte[]>();
         LinkedList<byte[]> p2shStack = null;
-        
+
         executeScript(txContainingThis, scriptSigIndex, this, stack, value, verifyFlags);
+
         if (verifyFlags.contains(VerifyFlag.P2SH))
             p2shStack = new LinkedList<byte[]>(stack);
+
         executeScript(txContainingThis, scriptSigIndex, scriptPubKey, stack, value, verifyFlags);
-        
+
         if (stack.isEmpty())
             throw new EvalFalseException();
         
@@ -1921,7 +2066,7 @@ public class Script {
             
             byte[] scriptPubKeyBytes = p2shStack.pollLast();
             Script scriptPubKeyP2SH = new Script(scriptPubKeyBytes);
-            
+
             executeScript(txContainingThis, scriptSigIndex, scriptPubKeyP2SH, p2shStack, value, verifyFlags);
             
             if (p2shStack.isEmpty())
@@ -1930,6 +2075,63 @@ public class Script {
             if (!castToBool(p2shStack.pollLast()))
                 throw new EvalFalseException();
         }
+    }
+
+    /**
+     * Verification of the MinimalPush. It checks that the PUSH operation is performed in the most
+     * efficient way possible, using specific opCodes instead of the more generic [1-75] opCodes.
+     *
+     * This verification will only take effect when the "MINIMALDATA" flag is active. The implementation
+     * is based on the Bitcoin ABC code:
+     * @see <a href="https://github.com/nchain-research/bitcoin-abc/blob/master/src/script/interpreter.cpp#L254">Interpreter.cpp</a>
+     *
+     * @param opCode opCode to execute
+     * @param data   data to process along the opCode
+     * @return       true (verification OK) false (Verification Fail)
+     */
+    private static boolean checkMinimalPush(int opCode, byte[] data) {
+
+
+        // If the data to push is empty, we check that we are using the OP_O opCode:
+        if (data.length == 0) return opCode == ScriptOpCodes.OP_0;
+
+        // If the data to push is in the range [1-16], we check we are using the OP_1-OP_16 opCodes:
+        if (data.length == 1 && data[0] >= 1 && data[0] <=16) return opCode == ScriptOpCodes.OP_1 + (data[0] - 1);
+
+        // If the data to push is 0x81, we check we are using the OP_1NEGATE opCode:
+        // We cast the Hex to byte, to avoid the compiler doing an autommatic cast to Int.
+        if (data.length == 1 && data[0] == (byte) 0x81) return opCode == ScriptOpCodes.OP_1NEGATE;
+
+        // If the size of the data is in the range 1-75], we check we are using the implicit PUSHDATA
+        // opCodes [1-75, or 0x01-0x4b opCodes]. the opCode number is equals to the data size:
+        if (data.length <=75) return opCode == data.length;
+
+        // If the data size is in the range [76-255] (for values <76, the flow would have stopped at the
+        // previous check), we check we are using the more efficient PUSHDATA1 opCode:
+        if (data.length <= 255) return opCode == ScriptOpCodes.OP_PUSHDATA1;
+
+        // If the data size is in the range [256-65535] (for values <256, the flow would have stopped at the
+        // previous check), we check we are using the more efficient PUSHDATA2 opCode:
+        if (data.length <= 65535) return opCode == ScriptOpCodes.OP_PUSHDATA2;
+
+        // In case all the previous checks pass, the validation is OK:
+        return true;
+    }
+
+    /**
+     * Checks if the top of the stack (parameter) meets the requirements for the MINIMALIF Flag, which are:
+     * - the value is an empty vector.
+     * - OR:
+     * - The value must be a single byte AND the value must be 1.
+     *
+     * NOTE: This methods receives the top of the stack as a parameter, so the caller must make sure that
+     * the stack is not modified (best option is to use stack.peekLast() before calling this method).
+     *
+     * @param topStack  Value from the top of the stack
+     * @return          true: Pass MINIMALIF validation /False: NOT pass
+     */
+    private static boolean checkMinimalIf(byte[] topStack) {
+        return ((topStack.length == 0) || (topStack.length == 1 && topStack[0] == 1));
     }
 
     /**

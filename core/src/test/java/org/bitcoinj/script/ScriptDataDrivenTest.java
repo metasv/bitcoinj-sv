@@ -85,11 +85,7 @@ public class ScriptDataDrivenTest {
 
             flags = ScriptHelpers.parseVerifyFlags(flagString);
             // TODO: these capabilities have not been implemented yet or they are failing
-            if( flags.contains(Script.VerifyFlag.MINIMALDATA)
-                    || flags.contains(Script.VerifyFlag.MINIMALIF)
-                    || flags.contains(Script.VerifyFlag.CHECKSEQUENCEVERIFY)
-                    || flags.contains(Script.VerifyFlag.NULLFAIL)
-                    || expected.equals("SIG_DER")
+            if( expected.equals("SIG_DER")
                     || expected.equals("ILLEGAL_FORKID")
                     || expected.equals("SIG_HIGH_S")
                     || expected.equals("SIG_HASHTYPE")
@@ -159,6 +155,16 @@ public class ScriptDataDrivenTest {
             result = "UNBALANCED_CONDITIONAL";
         } catch (OpVerifyFailed e) {
             result = "VERIFY";
+        } catch (MinimalDataException e) {
+            result = "MINIMALDATA";
+        } catch (MinimalIfException e) {
+            result = "MINIMALIF";
+        } catch (NullFailException e) {
+            result = "NULLFAIL";
+        } catch (UnsatisfiedLocktime e) {
+            result = "UNSATISFIED_LOCKTIME";
+        } catch (NegativeLocktime e) {
+            result = "NEGATIVE_LOCKTIME";
         } catch (VerificationException e) {
             result = "UNKNOWN_ERROR";
         }
