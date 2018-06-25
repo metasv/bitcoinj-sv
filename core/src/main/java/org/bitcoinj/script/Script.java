@@ -1731,7 +1731,7 @@ public class Script {
         // transaction would be allowed into the blockchain, making
         // the opcode ineffective.
         //
-        // ScriptCodification if this vin is not final is sufficient to
+        // testing if this vin is not final is sufficient to
         // prevent this condition. Alternatively we could test all
         // inputs, but testing just this input minimizes the data
         // required to prove correct CHECKLOCKTIMEVERIFY execution.
