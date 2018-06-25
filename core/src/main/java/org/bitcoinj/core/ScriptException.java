@@ -21,6 +21,8 @@
 package org.bitcoinj.core;
 
 
+import com.sun.xml.internal.bind.v2.TODO;
+
 public class ScriptException extends VerificationException {
 
     public ScriptException(String msg) {
@@ -140,5 +142,25 @@ public class ScriptException extends VerificationException {
 
     public static class UnbalancedConditionalException extends ScriptException {
         public UnbalancedConditionalException() { super("the script contains an unbalanced conditional"); }
+    }
+
+    public static class MinimalDataException extends ScriptException {
+        public MinimalDataException() {super("PushData operation not compliant to Minimal data. A more specific opCode should be used.");}
+    }
+
+    public static class MinimalIfException extends ScriptException {
+        public MinimalIfException() {super("Top of the Stack does NOT meet the MINIMALIF requirements");}
+    }
+
+    public static class NullFailException extends ScriptException {
+        public NullFailException() {super("NULLFAIL-compliant");}
+    }
+
+    public static class UnsatisfiedLocktime extends ScriptException {
+        public UnsatisfiedLocktime(String msg) {super(msg);}
+    }
+
+    public static class NegativeLocktime extends ScriptException {
+        public NegativeLocktime() {super("Negative locktime");}
     }
 }
