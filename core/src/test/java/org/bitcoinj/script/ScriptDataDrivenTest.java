@@ -128,7 +128,8 @@ public class ScriptDataDrivenTest {
             result = "OPERAND_SIZE";
         } catch (OpReturnException e) {
             result = "OP_RETURN";
-        } catch (PubKeyCountException e) {
+        }
+        catch (PubKeyCountException e) {
             result = "PUBKEY_COUNT";
         } catch (PushSizeException e) {
             result = "PUSH_SIZE";
@@ -156,7 +157,9 @@ public class ScriptDataDrivenTest {
             result = "NEGATIVE_LOCKTIME";
         } catch(SigPushOnlyException e){
             result = "SIG_PUSHONLY";
-        } catch(PubKeyTypeException e) {
+        }
+        /* TEMP
+        catch(PubKeyTypeException e) {
             result = "PUBKEYTYPE";
         } catch(PubKeyCompressedException e) {
             result = "PUBKEYTYPE";
@@ -168,7 +171,9 @@ public class ScriptDataDrivenTest {
             result = "ILLEGAL_FORKID";
         } catch (VerificationException.SignatureHashTypeError e) {
             result = "SIG_HASHTYPE";
-        } catch (VerificationException e) {
+        }
+        */
+        catch (VerificationException e) {
             result = "UNKNOWN_ERROR";
         } catch (Throwable e) {
             e.printStackTrace();
