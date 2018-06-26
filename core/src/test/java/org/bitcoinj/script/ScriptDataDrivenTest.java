@@ -85,18 +85,7 @@ public class ScriptDataDrivenTest {
 
             flags = ScriptHelpers.parseVerifyFlags(flagString);
             // TODO: these capabilities have not been implemented yet or they are failing
-            if( expected.equals("SIG_DER")
-                    || expected.equals("ILLEGAL_FORKID")
-                    || expected.equals("SIG_HIGH_S")
-                    || expected.equals("SIG_HASHTYPE")
-                    || expected.equals("SIG_PUSHONLY")
-                    || expected.equals("CLEANSTACK")
-                    // should fail, currently doesn't
-                    || expected.equals("PUBKEYTYPE")
-                    // this check returns the wrong error, it should return PUBKEY_COUNT
-                    // the issue is that the code checks for multiple issues in one line, which should have
-                    // different error codes, line 1710 Script.java
-                    || comments.equals("CHECKMULTISIG must error when the specified number of pubkeys is negative")) {
+            if (expected.equals("SIG_HIGH_S")) {
                 return;
             }
             scriptSig = ScriptHelpers.parseScriptString(scriptSigString);
@@ -165,14 +154,28 @@ public class ScriptDataDrivenTest {
             result = "UNSATISFIED_LOCKTIME";
         } catch (NegativeLocktime e) {
             result = "NEGATIVE_LOCKTIME";
+        } catch(SigPushOnlyException e){
+            result = "SIG_PUSHONLY";
+        } catch(PubKeyTypeException e) {
+            result = "PUBKEYTYPE";
+        } catch(PubKeyCompressedException e) {
+            result = "PUBKEYTYPE";
+        } catch (CleanstackException e) {
+            result = "CLEANSTACK";
+        } catch (VerificationException.SignatureSIG_DERError e) {
+            result = "SIG_DER";
+        } catch (VerificationException.SignatureForkIdError e) {
+            result = "ILLEGAL_FORKID";
+        } catch (VerificationException.SignatureHashTypeError e) {
+            result = "SIG_HASHTYPE";
         } catch (VerificationException e) {
             result = "UNKNOWN_ERROR";
+        } catch (Throwable e) {
+            e.printStackTrace();
+            System.out.println("TRACE!!!!");
         }
-        // TODO: these tests are failing
-        if ((expected.equals("OK") && result.equals("EVAL_FALSE"))
-                || (expected.equals("EVAL_FALSE") && result.equals("OK"))) {
-            return;
-        }
+
+
         if (!result.equals(expected)) {
             fail(String.format("FAILED: result=%s, expected=%s", result,expected));
         }
