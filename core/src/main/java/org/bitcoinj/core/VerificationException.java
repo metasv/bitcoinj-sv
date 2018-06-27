@@ -93,6 +93,7 @@ public class VerificationException extends RuntimeException {
         }
     }
 
+
     public static class UnexpectedCoinbaseInput extends VerificationException {
         public UnexpectedCoinbaseInput() {
             super("Coinbase input as input in non-coinbase transaction");
