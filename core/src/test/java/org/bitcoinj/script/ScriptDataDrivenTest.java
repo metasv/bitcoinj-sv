@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import org.bitcoinj.core.Coin;
+import org.bitcoinj.core.ScriptException;
 import org.bitcoinj.core.ScriptException.*;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.VerificationException;
@@ -98,82 +99,13 @@ public class ScriptDataDrivenTest {
 
             scriptSig.correctlySpends(spendTx, 0, scriptPubKey, value, flags);
 
-        } catch (BadOpcodeException e) {
-            result = "BAD_OPCODE";
-        } catch (DisabledOpcodeException e) {
-            result = "DISABLED_OPCODE";
-        } catch (DiscourageUpgradableNopsException e) {
-            result = "DISCOURAGE_UPGRADABLE_NOPS";
-        } catch (DivByZeroException e) {
-            result = "DIV_BY_ZERO";
-        } catch (EqualVerifyException e) {
-            result = "EQUALVERIFY";
-        } catch (EvalFalseException e) {
-            result = "EVAL_FALSE";
-        } catch (ImpossibleEncoding e) {
-            result = "IMPOSSIBLE_ENCODING";
-        } catch (InvalidAltStackOperationException e) {
-            result = "INVALID_ALTSTACK_OPERATION";
-        } catch (InvalidNumberRangeException e) {
-            result = "INVALID_NUMBER_RANGE";
-        } catch (InvalidStackOperationException e) {
-            result = "INVALID_STACK_OPERATION";
-        } catch (ModByZeroException e) {
-            result = "MOD_BY_ZERO";
-        } catch (NullDummyException e) {
-            result = "SIG_NULLDUMMY";
-        } catch (OpCountException e) {
-            result = "OP_COUNT";
-        } catch (OperandSizeException e) {
-            result = "OPERAND_SIZE";
-        } catch (OpReturnException e) {
-            result = "OP_RETURN";
         }
-        catch (PubKeyCountException e) {
-            result = "PUBKEY_COUNT";
-        } catch (PushSizeException e) {
-            result = "PUSH_SIZE";
-        } catch (ScriptSizeException e) {
-            result = "SCRIPT_SIZE";
-        } catch (SigCountException e) {
-            result = "SIG_COUNT";
-        } catch (SplitRangeException e) {
-            result = "SPLIT_RANGE";
-        } catch (StackSizeException e) {
-            result = "STACK_SIZE";
-        } catch (UnbalancedConditionalException e) {
-            result = "UNBALANCED_CONDITIONAL";
-        } catch (OpVerifyFailed e) {
-            result = "VERIFY";
-        } catch (MinimalDataException e) {
-            result = "MINIMALDATA";
-        } catch (MinimalIfException e) {
-            result = "MINIMALIF";
-        } catch (NullFailException e) {
-            result = "NULLFAIL";
-        } catch (UnsatisfiedLocktime e) {
-            result = "UNSATISFIED_LOCKTIME";
-        } catch (NegativeLocktime e) {
-            result = "NEGATIVE_LOCKTIME";
-        } catch(SigPushOnlyException e){
-            result = "SIG_PUSHONLY";
-        }
-        /* TEMP
-        catch(PubKeyTypeException e) {
-            result = "PUBKEYTYPE";
-        } catch(PubKeyCompressedException e) {
-            result = "PUBKEYTYPE";
-        } catch (CleanstackException e) {
-            result = "CLEANSTACK";
-        } catch (VerificationException.SignatureSIG_DERError e) {
-            result = "SIG_DER";
-        } catch (VerificationException.SignatureForkIdError e) {
-            result = "ILLEGAL_FORKID";
-        } catch (VerificationException.SignatureHashTypeError e) {
-            result = "SIG_HASHTYPE";
-        }
-        */
-        catch (VerificationException e) {
+
+        catch (ScriptException e) {
+            if (e.getError() != null)
+                result = e.getError().getMnemonic();
+            else result = "UNKNOWN_ERROR";
+        } catch (VerificationException e) {
             result = "UNKNOWN_ERROR";
         } catch (Throwable e) {
             e.printStackTrace();
