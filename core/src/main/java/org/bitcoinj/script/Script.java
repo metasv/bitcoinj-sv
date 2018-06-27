@@ -1899,6 +1899,7 @@ public class Script {
                         txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
 
                 sigValid = ECKey.verify(hash.getBytes(), sig, pubKey);
+
             }
 
         } catch (SignatureFormatError e) {
@@ -2264,14 +2265,15 @@ public class Script {
         boolean result = true;
         Iterator<ScriptChunk> it = chunks.iterator();
 
-        do {
+        while (result && it.hasNext()) {
             int opCode = it.next().opcode;
             // Note that IsPushOnly() *does* consider OP_RESERVED to be a push-type
             // opcode, however execution of OP_RESERVED fails, so it's not relevant
             // to P2SH/BIP62 as the scriptSig would fail prior to the P2SH special
             // validation code being executed.
             if (opCode > ScriptOpCodes.OP_16) result = false;
-        } while (result && it.hasNext());
+        } // while...
+
         return result;
     }
 
