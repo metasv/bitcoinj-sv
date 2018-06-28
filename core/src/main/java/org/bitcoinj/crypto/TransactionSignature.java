@@ -122,6 +122,8 @@ public class TransactionSignature extends ECKey.ECDSASignature {
         // Hashtype verification has been removed from here,
         // and put in the "isValidHashType" function.
 
+        if (!isValidHashType(signature)) return false;
+
         //                   "wrong type"                  "wrong length marker"
         if ((signature[0] & 0xff) != 0x30 || (signature[1] & 0xff) != signature.length-3)
             return false;
