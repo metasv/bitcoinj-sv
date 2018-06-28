@@ -86,7 +86,7 @@ public enum ScriptError {
     }
 
     static {
-        mnemonicToScriptErrorMap = new HashMap<>();
+        mnemonicToScriptErrorMap = new HashMap<String, ScriptError>();
         for (ScriptError err : ScriptError.values()) {
             mnemonicToScriptErrorMap.put(err.getMnemonic(), err);
         }
