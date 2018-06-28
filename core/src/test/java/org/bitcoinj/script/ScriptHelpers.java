@@ -67,7 +67,9 @@ public class ScriptHelpers {
                 // opcode, e.g. OP_ADD or OP_1:
                 out.write(ScriptOpCodes.getOpCode(w.substring(3)));
             } else {
-                throw new IllegalArgumentException(String.format("Invalid Data: %s", w));
+                // CHANGE: We throw a Disabled OPCode Exception instad of a more general IllegalArgumentEx
+                // throw new IllegalArgumentException(String.format("Invalid Data: %s", w));
+                throw new ScriptException(ScriptError.SCRIPT_ERR_DISABLED_OPCODE, String.format("Invalid Data: %s", w));
             }
         }
         return new Script(out.toByteArray());
