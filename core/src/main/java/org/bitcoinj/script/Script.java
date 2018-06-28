@@ -2151,7 +2151,7 @@ public class Script {
         // as the non-P2SH evaluation of a P2SH script will obviously not result in
         // a clean stack (the P2SH inputs remain). The same holds for witness
         // evaluation.
-        if (verifyFlags.contains(VerifyFlag.CLEANSTACK)) {
+        if (verifyFlags.contains(VerifyFlag.CLEANSTACK) && verifyFlags.contains(VerifyFlag.P2SH)) {
             if (stack.size() != 1)
                 throw new ScriptException(ScriptError.SCRIPT_ERR_CLEANSTACK
                         , "CleanStack check failed. Stack size is not 1.");
@@ -2188,12 +2188,23 @@ public class Script {
      */
     private static void checkSignatureEncoding(byte[] sigBytes, Set<VerifyFlag> flags) throws SignatureFormatError {
 
+        // NOTE:
+        // When the "STRICTENC" flag is active, we need to check if the Signature encoding is right, and
+        // different errors might be thrown: SIG_DER, SIG_HASHTYPE and FORID.
+        //  - SIG_DER: The signature is not DER-encoded
+        //  - SIGHASH_TYPE: The SIGHASH 8last byte in the signature) is wrong.
+        //  - FORKID:
+
+        boolean derEncodingOK = true;
+        boolean sighashTypeOK = true;
+        boolean forkIdOK = true;
+
         // If the flags specify STRICTENC, DERSIG or LOW_S, we check if the Signature is CANONICAL...
         if ((flags.contains(VerifyFlag.STRICTENC)
                 || flags.contains(VerifyFlag.DERSIG)
                 || flags.contains(VerifyFlag.LOW_S))
                 && !TransactionSignature.isEncodingCanonical(sigBytes))
-            throw new ScriptException(ScriptError.SCRIPT_ERR_SIG_DER, "Signature not in DER Format");
+            derEncodingOK = false;
 
         // We check Low DER Signature...
         if (flags.contains(VerifyFlag.LOW_S)) checkLowDERSignature(sigBytes);
@@ -2203,14 +2214,22 @@ public class Script {
 
             // Checking hashtype...
             if (!TransactionSignature.isValidHashType(sigBytes))
-                throw new ScriptException(ScriptError.SCRIPT_ERR_SIG_HASHTYPE, "Hashtype not correct in Signature");
+                sighashTypeOK = false;
 
             // checking forkIdEnabled...
             boolean usesForkId = TransactionSignature.hasForkId(sigBytes);
             boolean forIkEnabled = flags.contains(VerifyFlag.SIGHASH_FORKID);
-            if (!forIkEnabled && usesForkId) throw new ScriptException(ScriptError.SCRIPT_ERR_FORKID, "forkId not compliant with SIGHASH_FORKID flag");
-            if (forIkEnabled && !usesForkId) throw new ScriptException(ScriptError.SCRIPT_ERR_FORKID, "forkId not compliant with SIGHASH_FORKID flag");
+            if (!forIkEnabled && usesForkId) forkIdOK = false;
+            if (forIkEnabled && !usesForkId) forkIdOK = false;
         }
+
+        // Now we trigger the error. In case more than one error has been detected, we trigger only one of them. The
+        // priority in this case does not affect the outcome of the Script (ScriptException in any case), but it MIGHT
+        // affect the test case scenarios if the expected result is not set in a consistent way.
+
+        if (!sighashTypeOK) throw new ScriptException(ScriptError.SCRIPT_ERR_SIG_HASHTYPE, "Hashtype not correct in Signature");
+        if (!forkIdOK) throw new ScriptException(ScriptError.SCRIPT_ERR_FORKID, "forkId not compliant with SIGHASH_FORKID flag");
+        if (!derEncodingOK) throw new ScriptException(ScriptError.SCRIPT_ERR_SIG_DER, "Signature not in DER Format");
 
         // If we reach this far, Signature is OK...
     }
