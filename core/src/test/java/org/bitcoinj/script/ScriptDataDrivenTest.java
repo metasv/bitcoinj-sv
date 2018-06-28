@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Charsets;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.ScriptException;
-import org.bitcoinj.core.ScriptException.*;
 import org.bitcoinj.core.Transaction;
 import org.bitcoinj.core.VerificationException;
 import org.junit.Test;
@@ -43,7 +42,7 @@ public class ScriptDataDrivenTest {
     public static Collection<JsonNode> getData() throws IOException {
         Collection<JsonNode> testData = new ArrayList<JsonNode>(1000);
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(Thread.currentThread().getContextClassLoader().
-                getResourceAsStream("script_tests.json"), Charsets.UTF_8));
+                getResourceAsStream("json/script_tests.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
             if (test.size() > 1) {          // ignore comments
                 testData.add(test);
@@ -69,22 +68,53 @@ public class ScriptDataDrivenTest {
         int i = 0;
         String result = "OK";
 
+        // NOTE:
+        // In case the test cases are missing the EXPECTED_RESULT field (because they all belong to a file where all
+        // the tests are supposed to fail, for example), we don't need to parse that field. So in that case we need
+        // to set the EXPECTED_RESULT in advance...
+        //  - If all the tests are supposed to fail, set the EXPECTED_RESULT to 'ERROR'.
+        //  - If all the tests are supposed to fail, set the EXPECTED_RESULT to 'OK'.
+
+        // NOTE: USe the following values depending on the json file:
+        // script_tests.json from bitcoinJ: null
+        // script_invalid.json from bitcoinj-cash: "ERROR"
+        // script_valid.json from bitcoinj-cash: "OK"
+        // script_tests.json from bitcopin.abc: null
+        // script_tests.json from nChain branch: null
+
+        String FIXED_EXPECTED_RESULT = null;
+
+        //FIXED_EXPECTED_RESULT = "ERROR"
+        //FIXED_EXPECTED_RESULT = "OK"
+
         try {
+
+
+            // We check length of each Test
             if (jsonData.size() > 6) {
                 fail(String.format("too many fields in json: %s", jsonData));
             }
+            // We check if the test specifies some money (first position of the array within the test)
             if (jsonData.get(0).isArray()) {
                 value = Coin.parseCoin(jsonData.get(i++).get(0).asText());
             }
+
+
             String scriptSigString = jsonData.get(i++).asText();
             String scriptPubKeyString = jsonData.get(i++).asText();
             String flagString = jsonData.get(i++).asText();
-            expected = jsonData.get(i++).asText();
-            if (jsonData.size() > 4) {
-                comments = jsonData.get(i).asText();
+
+            if (FIXED_EXPECTED_RESULT == null) {
+                expected = jsonData.get(i++).asText();
+                if (jsonData.size() > 4) {
+                    comments = jsonData.get(i).asText();
+                }
             }
+            else expected = FIXED_EXPECTED_RESULT;
+
 
             flags = ScriptHelpers.parseVerifyFlags(flagString);
+
             // TODO: these capabilities have not been implemented yet or they are failing
             if (expected.equals("SIG_HIGH_S")) {
                 return;
@@ -102,16 +132,17 @@ public class ScriptDataDrivenTest {
         }
 
         catch (ScriptException e) {
-            if (e.getError() != null)
-                result = e.getError().getMnemonic();
-            else result = "UNKNOWN_ERROR";
+            if (FIXED_EXPECTED_RESULT != null) result = "ERROR";
+            else if (e.getError() != null)
+                    result = e.getError().getMnemonic();
+                 else result = "UNKNOWN_ERROR";
         } catch (VerificationException e) {
-            result = "UNKNOWN_ERROR";
+            if (expected != null && !expected.equals("")) result = "ERROR";
+            else result = "UNKNOWN_ERROR";
         } catch (Throwable e) {
+            // We shouldn't get here
             e.printStackTrace();
-            System.out.println("TRACE!!!!");
         }
-
 
         if (!result.equals(expected)) {
             fail(String.format("FAILED: result=%s, expected=%s", result,expected));
