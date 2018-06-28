@@ -42,7 +42,7 @@ public class ScriptDataDrivenTest {
     public static Collection<JsonNode> getData() throws IOException {
         Collection<JsonNode> testData = new ArrayList<JsonNode>(1000);
         JsonNode json = new ObjectMapper().readTree(new InputStreamReader(Thread.currentThread().getContextClassLoader().
-                getResourceAsStream("json/script_tests.json"), Charsets.UTF_8));
+                getResourceAsStream("script_tests.json"), Charsets.UTF_8));
         for (JsonNode test : json) {
             if (test.size() > 1) {          // ignore comments
                 testData.add(test);
