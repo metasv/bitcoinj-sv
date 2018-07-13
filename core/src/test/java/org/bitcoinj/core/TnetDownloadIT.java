@@ -19,16 +19,19 @@ import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.store.BlockStoreException;
 import org.junit.Test;
 
-public class MainnetDownloadIT extends ChainDownloadParent {
+// note: can call this TestnetDownloadIT otherwise it gets included in the unit tests
 
-    public MainnetDownloadIT() throws BlockStoreException {
+public class TnetDownloadIT extends ChainDownloadParent {
+
+    public TnetDownloadIT() throws BlockStoreException {
         super(new MainNetParams());
     }
 
     @Test
     public void testDownloadedChain() throws InterruptedException, BlockStoreException {
         sync();
-        assert(blockChain.getBestChainHeight() > 538009);
-        assert(blockStore.get(new Sha256Hash("000000000000000000079fc7ce821f88f4864358decd958b676235447e34619b")).getHeight() == 538007);
+        assert (blockChain.getBestChainHeight() > 1245531);
+        assert (blockStore.get(new Sha256Hash("000000000000f8d83b0341531b39685b1cc2963d0086a9a64cf2de684b804be5")).getHeight() == 1245530);
     }
 }
+
