@@ -194,8 +194,9 @@ public class TransactionTest {
         Script invalidScriptSig2 =
                 ScriptBuilder.createCLTVPaymentChannelInput(incorrectSig, toSig);
 
+        EnumSet<Script.VerifyFlag> flags = EnumSet.of(Script.VerifyFlag.STRICTENC);
         try {
-            scriptSig.correctlySpends(tx, 0, outputScript, Script.ALL_VERIFY_FLAGS);
+            scriptSig.correctlySpends(tx, 0, outputScript, flags);
         } catch (ScriptException e) {
             e.printStackTrace();
             fail("Settle transaction failed to correctly spend the payment channel");
@@ -235,8 +236,9 @@ public class TransactionTest {
         Script invalidScriptSig =
                 ScriptBuilder.createCLTVPaymentChannelRefund(incorrectSig);
 
+        EnumSet<Script.VerifyFlag> flags = EnumSet.of(Script.VerifyFlag.STRICTENC);
         try {
-            scriptSig.correctlySpends(tx, 0, outputScript, Script.ALL_VERIFY_FLAGS);
+            scriptSig.correctlySpends(tx, 0, outputScript, flags);
         } catch (ScriptException e) {
             e.printStackTrace();
             fail("Refund failed to correctly spend the payment channel");
@@ -414,8 +416,7 @@ public class TransactionTest {
 
         Script sig = tx.getInput(0).getScriptSig();
 
-        sig.correctlySpends(tx, 0, txConnected.getOutput(1).getScriptPubKey(), txConnected.getOutput(1).getValue(), Script.ALL_VERIFY_FLAGS);
-
-
+        EnumSet<Script.VerifyFlag> flags = EnumSet.of(Script.VerifyFlag.STRICTENC, Script.VerifyFlag.SIGHASH_FORKID);
+        sig.correctlySpends(tx, 0, txConnected.getOutput(1).getScriptPubKey(), txConnected.getOutput(1).getValue(), flags);
     }
 }
