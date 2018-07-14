@@ -17,18 +17,28 @@ package org.bitcoinj.core;
 
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.store.BlockStoreException;
+import org.junit.Before;
 import org.junit.Test;
 
-public class MainnetDownloadIT extends ChainDownloadParent {
+public class MainnetDownloadIT {
 
-    public MainnetDownloadIT() throws BlockStoreException {
-        super(new MainNetParams());
+    static DownloadedChainData data = null;
+
+    @Before
+    public void setup() throws InterruptedException, BlockStoreException {
+        if (data == null) {
+            data = new DownloadedChainData(new MainNetParams());
+            data.setupAndSync(null);
+        }
     }
 
+    /**
+     * check that the chain is higher than a given height and that a specific block is included
+     * @throws BlockStoreException
+     */
     @Test
-    public void testDownloadedChain() throws InterruptedException, BlockStoreException {
-        sync();
-        assert(blockChain.getBestChainHeight() > 538009);
-        assert(blockStore.get(new Sha256Hash("000000000000000000079fc7ce821f88f4864358decd958b676235447e34619b")).getHeight() == 538007);
+    public void testDownloadedChain() throws BlockStoreException {
+        assert(data.blockChain.getBestChainHeight() > 538009);
+        assert(data.blockStore.get(new Sha256Hash("000000000000000000079fc7ce821f88f4864358decd958b676235447e34619b")).getHeight() == 538007);
     }
 }

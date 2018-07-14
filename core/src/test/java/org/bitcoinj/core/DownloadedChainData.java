@@ -22,27 +22,41 @@ import org.bitcoinj.net.discovery.DnsDiscovery;
 import org.bitcoinj.store.BlockStore;
 import org.bitcoinj.store.BlockStoreException;
 import org.bitcoinj.store.MemoryBlockStore;
+import org.bitcoinj.wallet.Wallet;
 
-public class ChainDownloadParent {
+import java.util.ArrayList;
+import java.util.List;
 
-    protected NetworkParameters parameters;
-    protected Context context;
-    protected BlockStore blockStore;
-    protected BlockChain blockChain;
-    protected ClientConnectionManager connectionManager;
-    protected PeerGroup peerGroup;
+/**
+ * helper class to hold a downloaded chain and wallet
+ * this is bad practice, but necessary for the MainnetDownloadIT and TnetDownloadIT integration tests
+ */
+public class DownloadedChainData {
+    public NetworkParameters parameters;
+    public Context context;
+    public BlockStore blockStore;
+    public BlockChain blockChain;
+    public ClientConnectionManager connectionManager;
+    public PeerGroup peerGroup;
+    public Wallet wallet;
 
-    public ChainDownloadParent(NetworkParameters parameters) throws BlockStoreException {
+    public DownloadedChainData(NetworkParameters parameters) {
         this.parameters = parameters;
+    }
+
+    public void setupAndSync(Wallet wallet) throws InterruptedException, BlockStoreException {
+        List<Wallet> wallets = new ArrayList<>(1);
+        this.wallet = wallet;
+        if (wallet != null) {
+            wallets.add(wallet);
+        }
         this.context = new Context(parameters);
         this.blockStore = new MemoryBlockStore(parameters);
-        this.blockChain = new BlockChain(context, blockStore);
+        this.blockChain = new BlockChain(context, wallets, blockStore);
         this.connectionManager = new BlockingClientManager();
         this.peerGroup = new PeerGroup(context, blockChain, connectionManager);
         peerGroup.addPeerDiscovery(new DnsDiscovery(parameters));
-    }
 
-    public void sync() throws InterruptedException {
         DownloadProgressTracker listener = new DownloadProgressTracker();
         peerGroup.start();
         peerGroup.startBlockChainDownload(listener);
