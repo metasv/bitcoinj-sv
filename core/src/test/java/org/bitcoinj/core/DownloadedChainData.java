@@ -51,6 +51,7 @@ public class DownloadedChainData {
             wallets.add(wallet);
         }
         this.context = new Context(parameters);
+        Context.propagate(this.context);
         this.blockStore = new MemoryBlockStore(parameters);
         this.blockChain = new BlockChain(context, wallets, blockStore);
         this.connectionManager = new BlockingClientManager();
