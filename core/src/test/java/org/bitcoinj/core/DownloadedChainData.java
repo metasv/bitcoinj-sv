@@ -42,6 +42,8 @@ public class DownloadedChainData {
 
     public DownloadedChainData(NetworkParameters parameters) {
         this.parameters = parameters;
+        this.context = new Context(parameters);
+        Context.propagate(this.context);
     }
 
     public void setupAndSync(Wallet wallet) throws InterruptedException, BlockStoreException {
@@ -50,8 +52,6 @@ public class DownloadedChainData {
         if (wallet != null) {
             wallets.add(wallet);
         }
-        this.context = new Context(parameters);
-        Context.propagate(this.context);
         this.blockStore = new MemoryBlockStore(parameters);
         this.blockChain = new BlockChain(context, wallets, blockStore);
         this.connectionManager = new BlockingClientManager();
