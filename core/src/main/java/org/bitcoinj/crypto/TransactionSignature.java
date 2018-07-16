@@ -91,6 +91,8 @@ public class TransactionSignature extends ECKey.ECDSASignature {
 
     /**
      * Checkes if the Hashtype is properly set in the signature.
+     * (from bicopinj-cash)
+     *
      * @param signature Signature
      * @return          True (correct Hashtype)/ False
      */
@@ -116,13 +118,9 @@ public class TransactionSignature extends ECKey.ECDSASignature {
         // excessively padded (do not start with a 0 byte, unless an otherwise negative number follows,
         // in which case a single 0 byte is necessary and even required).
 
+
         if (signature.length < 9 || signature.length > 73)
             return false;
-
-        // Hashtype verification has been removed from here,
-        // and put in the "isValidHashType" function.
-
-        if (!isValidHashType(signature)) return false;
 
         //                   "wrong type"                  "wrong length marker"
         if ((signature[0] & 0xff) != 0x30 || (signature[1] & 0xff) != signature.length-3)

@@ -22,6 +22,8 @@
 
 package org.bitcoinj.script;
 
+import com.chain.bitcoinj.utilities.ScriptLogListener;
+import com.chain.bitcoinj.utilities.ScriptLogManager;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.VerificationException.*;
 
@@ -1895,7 +1897,7 @@ public class Script {
 
                 // TODO: Should check hash type is known
                 Sha256Hash hash = sig.useForkId() ?
-                        txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
+                        txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay(), verifyFlags) :
                         txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
 
                 sigValid = ECKey.verify(hash.getBytes(), sig, pubKey);
@@ -1944,7 +1946,7 @@ public class Script {
         if (opCount > 201)
             throw new ScriptException(ScriptError.SCRIPT_ERR_OP_COUNT, "script contains too many opcodes");
         if (stack.size() < pubKeyCount + 1)
-            throw new ScriptException(ScriptError.SCRIPT_ERR_INVALID_STACK_OPERATION, "he operation was invalid given the contents of the stack");
+            throw new ScriptException(ScriptError.SCRIPT_ERR_INVALID_STACK_OPERATION, "the operation was invalid given the contents of the stack");
 
         LinkedList<byte[]> pubkeys = new LinkedList<byte[]>();
         for (int i = 0; i < pubKeyCount; i++) {
@@ -1956,7 +1958,7 @@ public class Script {
         if (sigCount < 0 || sigCount > pubKeyCount)
             throw new ScriptException(ScriptError.SCRIPT_ERR_SIG_COUNT, "sig count out of range");
         if (stack.size() < sigCount + 1)
-            throw new ScriptException(ScriptError.SCRIPT_ERR_INVALID_STACK_OPERATION, "he operation was invalid given the contents of the stack");
+            throw new ScriptException(ScriptError.SCRIPT_ERR_INVALID_STACK_OPERATION, "the operation was invalid given the contents of the stack");
 
         LinkedList<byte[]> sigs = new LinkedList<byte[]>();
         for (int i = 0; i < sigCount; i++) {
@@ -2008,7 +2010,7 @@ public class Script {
                     if (sigsCopy.getFirst().length > 0) {
                         sig = TransactionSignature.decodeFromBitcoin(sigsCopy.getFirst(), requireCanonical);
                         Sha256Hash hash = sig.useForkId() ?
-                                txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay()) :
+                                txContainingThis.hashForSignatureWitness(index, connectedScript, value, sig.sigHashMode(), sig.anyoneCanPay(), verifyFlags) :
                                 txContainingThis.hashForSignature(index, connectedScript, (byte) sig.sighashFlags);
                         if (ECKey.verify(hash.getBytes(), sig, pubKey))
                             sigsCopy.pollFirst();
@@ -2103,11 +2105,13 @@ public class Script {
         LinkedList<byte[]> p2shStack = null;
 
         executeScript(txContainingThis, scriptSigIndex, this, stack, value, verifyFlags);
+        //executeDebugScript(txContainingThis, scriptSigIndex, this, stack, value, verifyFlags, ScriptLogManager.getListener(ScriptLogListener.ScriptType.scriptSig));
 
         if (verifyFlags.contains(VerifyFlag.P2SH))
             p2shStack = new LinkedList<byte[]>(stack);
 
         executeScript(txContainingThis, scriptSigIndex, scriptPubKey, stack, value, verifyFlags);
+        //executeDebugScript(txContainingThis, scriptSigIndex, scriptPubKey, stack, value, verifyFlags, ScriptLogManager.getListener(ScriptLogListener.ScriptType.scriptPubKey));
 
         if (stack.isEmpty())
             throw new ScriptException(ScriptError.SCRIPT_ERR_EVAL_FALSE, "script evaluated false");
@@ -2138,12 +2142,16 @@ public class Script {
             Script scriptPubKeyP2SH = new Script(scriptPubKeyBytes);
 
             executeScript(txContainingThis, scriptSigIndex, scriptPubKeyP2SH, p2shStack, value, verifyFlags);
-            
+            //executeDebugScript(txContainingThis, scriptSigIndex, scriptPubKeyP2SH, p2shStack, value, verifyFlags, ScriptLogManager.getListener(ScriptLogListener.ScriptType.p2sh));
+
             if (p2shStack.isEmpty())
                 throw new ScriptException(ScriptError.SCRIPT_ERR_EVAL_FALSE, "script evaluated false");
             
             if (!castToBool(p2shStack.pollLast()))
                 throw new ScriptException(ScriptError.SCRIPT_ERR_EVAL_FALSE, "script evaluated false");
+
+            // We restore the Stack with the rsult of the p2shStack after executing the redeem script...
+            stack = p2shStack;
 
         }
 
@@ -2152,9 +2160,9 @@ public class Script {
         // a clean stack (the P2SH inputs remain). The same holds for witness
         // evaluation.
         if (verifyFlags.contains(VerifyFlag.CLEANSTACK) && verifyFlags.contains(VerifyFlag.P2SH)) {
-            if (stack.size() != 1)
+            if (stack.size() != 0)
                 throw new ScriptException(ScriptError.SCRIPT_ERR_CLEANSTACK
-                        , "CleanStack check failed. Stack size is not 1.");
+                        , "CleanStack check failed. Stack size is not empty.");
         }
     }
 
@@ -2192,7 +2200,7 @@ public class Script {
         // When the "STRICTENC" flag is active, we need to check if the Signature encoding is right, and
         // different errors might be thrown: SIG_DER, SIG_HASHTYPE and FORID.
         //  - SIG_DER: The signature is not DER-encoded
-        //  - SIGHASH_TYPE: The SIGHASH 8last byte in the signature) is wrong.
+        //  - SIGHASH_TYPE: The SIGHASH (last byte in the signature) is wrong.
         //  - FORKID:
 
         boolean derEncodingOK = true;
@@ -2206,26 +2214,28 @@ public class Script {
                 && !TransactionSignature.isEncodingCanonical(sigBytes))
             derEncodingOK = false;
 
-        // We check Low DER Signature...
-        if (flags.contains(VerifyFlag.LOW_S)) checkLowDERSignature(sigBytes);
+        if (derEncodingOK) {
+            // We check Low DER Signature...
+            if (flags.contains(VerifyFlag.LOW_S)) checkLowDERSignature(sigBytes);
 
-        // We check the HASHTYPE and the FORKID...
-        if (flags.contains(VerifyFlag.STRICTENC)) {
+            // We check the HASHTYPE and the FORKID...
+            if (flags.contains(VerifyFlag.STRICTENC)) {
 
-            // Checking hashtype...
-            if (!TransactionSignature.isValidHashType(sigBytes))
-                sighashTypeOK = false;
+                // Checking hashtype...
+                if (!TransactionSignature.isValidHashType(sigBytes))
+                    sighashTypeOK = false;
 
-            // checking forkIdEnabled...
-            boolean usesForkId = TransactionSignature.hasForkId(sigBytes);
-            boolean forIkEnabled = flags.contains(VerifyFlag.SIGHASH_FORKID);
-            if (!forIkEnabled && usesForkId) forkIdOK = false;
-            if (forIkEnabled && !usesForkId) forkIdOK = false;
+                // checking forkIdEnabled...
+                boolean usesForkId = TransactionSignature.hasForkId(sigBytes);
+                boolean forIkEnabled = flags.contains(VerifyFlag.SIGHASH_FORKID);
+                if (!forIkEnabled && usesForkId) forkIdOK = false;
+                if (forIkEnabled && !usesForkId) forkIdOK = false;
+            }
         }
 
+
         // Now we trigger the error. In case more than one error has been detected, we trigger only one of them. The
-        // priority in this case does not affect the outcome of the Script (ScriptException in any case), but it MIGHT
-        // affect the test case scenarios if the expected result is not set in a consistent way.
+        // priority in this case does not affect the outcome of the Script (ScriptException in any case).
 
         if (!sighashTypeOK) throw new ScriptException(ScriptError.SCRIPT_ERR_SIG_HASHTYPE, "Hashtype not correct in Signature");
         if (!forkIdOK) throw new ScriptException(ScriptError.SCRIPT_ERR_FORKID, "forkId not compliant with SIGHASH_FORKID flag");

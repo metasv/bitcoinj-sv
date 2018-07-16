@@ -1,6 +1,7 @@
 /*
  * Copyright 2011 Google Inc.
  * Copyright 2014 Andreas Schildbach
+ * Copyright 2018 the bitcoinj-cash developers
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +14,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * This file has been modified by the bitcoinj-cash developers for the bitcoinj-cash project.
+ * The original file was from the bitcoinj project (https://github.com/bitcoinj/bitcoinj).
  */
 
 package org.bitcoinj.core;
@@ -659,9 +663,6 @@ public class Transaction extends ChildMessage {
             }
             s.append('\n');
         }
-        if (isOptInFullRBF()) {
-            s.append("  opts into full replace-by-fee\n");
-        }
         if (inputs.size() == 0) {
             s.append("  INCOMPLETE: No inputs!\n");
             return s.toString();
@@ -703,8 +704,6 @@ public class Transaction extends ChildMessage {
                 }
                 if (in.hasSequence()) {
                     s.append("\n          sequence:").append(Long.toHexString(in.getSequenceNumber()));
-                    if (in.isOptInFullRBF())
-                        s.append(", opts into full RBF");
                 }
             } catch (Exception e) {
                 s.append("[exception: ").append(e.getMessage()).append("]");
@@ -1060,9 +1059,10 @@ public class Transaction extends ChildMessage {
             byte[] redeemScript,
             Coin value,
             SigHash hashType,
-            boolean anyoneCanPay)
+            boolean anyoneCanPay,
+            Set<Script.VerifyFlag> verifyFlags)
     {
-        Sha256Hash hash = hashForSignatureWitness(inputIndex, redeemScript, value, hashType, anyoneCanPay);
+        Sha256Hash hash = hashForSignatureWitness(inputIndex, redeemScript, value, hashType, anyoneCanPay, verifyFlags);
         return new TransactionSignature(key.sign(hash, aesKey), hashType, anyoneCanPay, true);
     }
 
@@ -1098,9 +1098,10 @@ public class Transaction extends ChildMessage {
             Script redeemScript,
             Coin value,
             SigHash hashType,
-            boolean anyoneCanPay)
+            boolean anyoneCanPay,
+            Set<Script.VerifyFlag> verifyFlags)
     {
-        Sha256Hash hash = hashForSignatureWitness(inputIndex, redeemScript.getProgram(), value, hashType, anyoneCanPay);
+        Sha256Hash hash = hashForSignatureWitness(inputIndex, redeemScript.getProgram(), value, hashType, anyoneCanPay, verifyFlags);
         return new TransactionSignature(key.sign(hash, aesKey), hashType, anyoneCanPay, true);
     }
     /**
@@ -1253,10 +1254,22 @@ public class Transaction extends ChildMessage {
             Script scriptCode,
             Coin prevValue,
             SigHash type,
+            boolean anyoneCanPay,
+            Set<Script.VerifyFlag> verifyFlags)
+    {
+        byte[] connectedScript = scriptCode.getProgram();
+        return hashForSignatureWitness(inputIndex, connectedScript, prevValue, type, anyoneCanPay, verifyFlags);
+    }
+
+    public synchronized Sha256Hash hashForSignatureWitness(
+            int inputIndex,
+            Script scriptCode,
+            Coin prevValue,
+            SigHash type,
             boolean anyoneCanPay)
     {
         byte[] connectedScript = scriptCode.getProgram();
-        return hashForSignatureWitness(inputIndex, connectedScript, prevValue, type, anyoneCanPay);
+        return hashForSignatureWitness(inputIndex, connectedScript, prevValue, type, anyoneCanPay, null);
     }
 
     public synchronized Sha256Hash hashForSignatureWitness(
@@ -1264,11 +1277,38 @@ public class Transaction extends ChildMessage {
             byte[] connectedScript,
             Coin prevValue,
             SigHash type,
-            boolean anyoneCanPay)
+            boolean anyoneCanPay) {
+        return hashForSignatureWitness(inputIndex, connectedScript, prevValue, type, anyoneCanPay, null);
+    }
+
+    public synchronized Sha256Hash hashForSignatureWitness(
+            int inputIndex,
+            byte[] connectedScript,
+            Coin prevValue,
+            SigHash type,
+            boolean anyoneCanPay,
+            Set<Script.VerifyFlag> verifyFlags)
     {
         byte sigHashType = (byte) TransactionSignature.calcSigHashValue(type, anyoneCanPay, true);
         ByteArrayOutputStream bos = new UnsafeByteArrayOutputStream(length == UNKNOWN_LENGTH ? 256 : length + 4);
         try {
+            // Replay Protection Implementation:
+            // If the "REPLAY PRIOTECTION" Flag is activated, we implement the Replay Protection Algorithm, which
+            // allows us the use different Fork IDS in the future. The Fork ID will be stored in the 24 more significant
+            // bits of nSigHashType (which is not a single byte now, but a 32 one).
+            // The following implementation is based on the one from bitcoin-abc:
+
+            int nSigHashType = sigHashType;
+            if ((verifyFlags!= null) && verifyFlags.contains(Script.VerifyFlag.REPLAY_PROTECTION)) {
+                // Legacy chain's value for fork id must be of the form 0xffxxxx.
+                // By xoring with 0xdead, we ensure that the value will be different
+                // from the original one, even if it already starts with 0xff.
+
+                int forkId = 0; // for now, the forkID is ZERO.
+                int newForkValue = forkId ^ 0xdead;
+                nSigHashType = sigHashType | ((0xff0000 | newForkValue) << 8);
+            }
+
             byte[] hashPrevouts = new byte[32];
             byte[] hashSequence = new byte[32];
             byte[] hashOutputs = new byte[32];
@@ -1323,7 +1363,8 @@ public class Transaction extends ChildMessage {
             uint32ToByteStreamLE(inputs.get(inputIndex).getSequenceNumber(), bos);
             bos.write(hashOutputs);
             uint32ToByteStreamLE(this.lockTime, bos);
-            uint32ToByteStreamLE(0x000000ff & sigHashType, bos);
+           // uint32ToByteStreamLE(0x000000ff & sigHashType, bos);
+            uint32ToByteStreamLE(nSigHashType, bos);
         } catch (IOException e) {
             throw new RuntimeException(e);  // Cannot happen.
         }
@@ -1572,17 +1613,6 @@ public class Transaction extends ChildMessage {
             return false;
         for (TransactionInput input : getInputs())
             if (input.hasSequence())
-                return true;
-        return false;
-    }
-
-    /**
-     * Returns whether this transaction will opt into the
-     * <a href="https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki">full replace-by-fee </a> semantics.
-     */
-    public boolean isOptInFullRBF() {
-        for (TransactionInput input : getInputs())
-            if (input.isOptInFullRBF())
                 return true;
         return false;
     }
