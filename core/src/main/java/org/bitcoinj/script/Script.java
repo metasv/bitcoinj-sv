@@ -22,9 +22,6 @@
 
 package org.bitcoinj.script;
 
-import com.chain.bitcoinj.utilities.ScriptLogListener;
-import com.chain.bitcoinj.utilities.ScriptLogManager;
-import com.sun.tools.javac.resources.legacy;
 import org.bitcoinj.core.*;
 import org.bitcoinj.core.VerificationException.*;
 
@@ -94,36 +91,16 @@ public class Script {
         PUBKEYTYPE // June 26, 29018.
     }
 
-    // After the commits from (June-July 2018), the Script engine supports now much more Verifications (MinimalData,
-    // DER encoding, Public key compression, etc). As a side effects, some tests which transaction used to be valid,
-    // are NOT anymore due to the new verifications. So until all those tests scenarios are revised and changed, we
-    // used a workaround, declaring an additional Enum with the Verification Flags used in the tests, to make them
-    // pass until the test data is changed.
+    // NOTE:
+    // Some of the new verifications implemented in the Script are not compatible with legacy tests:
+    // - SIGHASH_FORKID: forces the Script to verify the ForkID flag in the SIGHASH_BYTE is enabled
+    // - PUBKETTYPE:     forces the Script to checkh if the public key compression is OK
+    //
+    // Some legacy tests are not compilant with the previous 2 flags. The "ALL_VERIFY_FLAGS" Set
+    // (Which is used by those tests) includes all the Flags, so in order to keep the legacy behaviour of those tests,
+    // we redefine this collection so it does NOT include them. Temporary solution.
 
-
-    // This is the "old" ALL_VERIFY_FLAGS, containing all the possible verifications:
-    public static final EnumSet<VerifyFlag> COMPLETE_VERIFY_FLAGS = EnumSet.allOf(VerifyFlag.class);
-
-
-    // This is now the "new" ALL_VERIFY_FLAGS", same as the old one but without the Verifications that make some of the
-    // legacy tests fail.
-    public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.of(  VerifyFlag.P2SH,
-                                                                            VerifyFlag.STRICTENC,
-                                                                            VerifyFlag.DERSIG,
-                                                                            VerifyFlag.LOW_S,
-                                                                            VerifyFlag.NULLDUMMY,
-                                                                            VerifyFlag.SIGPUSHONLY,
-                                                                            VerifyFlag.MINIMALDATA,
-                                                                            VerifyFlag.DISCOURAGE_UPGRADABLE_NOPS,
-                                                                            //VerifyFlag.MINIMALIF,
-                                                                            VerifyFlag.NULLFAIL,
-                                                                            VerifyFlag.CLEANSTACK,
-                                                                            VerifyFlag.CHECKLOCKTIMEVERIFY,
-                                                                            VerifyFlag.CHECKSEQUENCEVERIFY,
-                                                                            //VerifyFlag.SIGHASH_FORKID,
-                                                                            VerifyFlag.REPLAY_PROTECTION,
-                                                                            VerifyFlag.MONOLITH_OPCODES,
-                                                                            VerifyFlag.REPLAY_PROTECTION);
+    public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.complementOf(EnumSet.of(VerifyFlag.SIGHASH_FORKID, VerifyFlag.PUBKEYTYPE));
 
 
     private static final Logger log = LoggerFactory.getLogger(Script.class);
