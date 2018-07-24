@@ -104,7 +104,7 @@ public class Script {
     // A possible solution might be to parameterize all the calls to the Script Engine, adding the Flags as a new
     // parameter, and refactor the whole project so every single call needs to acknowledge the Verification Flags used.
     // This refactoring is a possible solution. At this moment, and in order not to break the existing code and the
-    // legacy tests, we remove from the SET those flags which affect the Script the most and might break the legacy code.
+    // legacy tests, we remove from the SET those flags which affect the Script the most and might break the legacy code
 
     public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.complementOf(EnumSet.of(VerifyFlag.SIGHASH_FORKID, VerifyFlag.REPLAY_PROTECTION));
 
