@@ -2303,7 +2303,7 @@ public class Script {
         if (sigBytes.length != 33) return false;
 
         //  Non-canonical public key: invalid prefix for compressed key
-        if (sigBytes[0] == 0x02 || sigBytes[0] == 0x03) return false;
+        if (sigBytes[0] != 0x02 && sigBytes[0] != 0x03) return false;
 
         return true;
     }
