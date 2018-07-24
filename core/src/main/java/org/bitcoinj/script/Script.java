@@ -91,16 +91,22 @@ public class Script {
         PUBKEYTYPE // June 26, 29018.
     }
 
-    // NOTE:
-    // Some of the new verifications implemented in the Script are not compatible with legacy tests:
-    // - SIGHASH_FORKID: forces the Script to verify the ForkID flag in the SIGHASH_BYTE is enabled
-    // - PUBKETTYPE:     forces the Script to checkh if the public key compression is OK
-    //
-    // Some legacy tests are not compilant with the previous 2 flags. The "ALL_VERIFY_FLAGS" Set
-    // (Which is used by those tests) includes all the Flags, so in order to keep the legacy behaviour of those tests,
-    // we redefine this collection so it does NOT include them. Temporary solution.
+    // The outcome of the script execution is affected by the Verification flags used. The more verifications are
+    // implemented, the more restrictions are applied on it. The ALL_VERIFY_FLAGS variable is used to store those
+    // verifications that can be used as a Basis for executing and validating a Script. So this Set of Flags is used
+    // through the Bitcoin-core and several tests when some script needs to be executed.
+    // After the implementation of the last verification Flags, including all of them in this Set is not safe anymore,
+    // since some of these flags affect the outcome of the script to a big extent, which can make other legacy tests
+    // to fail.
+    // For instance, the SIGHASH_FORKID Flag forces the Script engine to expect all the Signatures to have the SIGHASH
+    // FORK ID bit set. The REPLAY_PROTECTION flag, on the other hand, changes the way the Transaction Hash is
+    // calculated.
+    // A possible solution might be to parameterize all the calls to the Script Engine, adding the Flags as a new
+    // parameter, and refactor the whole project so every single call needs to acknowledge the Verification Flags used.
+    // This refactoring is a possible solution. At this moment, and in order not to break the existing code and the
+    // legacy tests, we remove from the SET those flags which affect the Script the most and might break the legacy code.
 
-    public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.complementOf(EnumSet.of(VerifyFlag.SIGHASH_FORKID, VerifyFlag.PUBKEYTYPE));
+    public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.complementOf(EnumSet.of(VerifyFlag.SIGHASH_FORKID, VerifyFlag.REPLAY_PROTECTION));
 
 
     private static final Logger log = LoggerFactory.getLogger(Script.class);
