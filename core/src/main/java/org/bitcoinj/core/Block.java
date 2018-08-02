@@ -1004,7 +1004,8 @@ public class Block extends Message {
      * purely a header).
      */
     public boolean hasTransactions() {
-        return !this.transactions.isEmpty();
+        // Avoid returning null.
+        return (this.transactions != null && !this.transactions.isEmpty());
     }
 
     /**
