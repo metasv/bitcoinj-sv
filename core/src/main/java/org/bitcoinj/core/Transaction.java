@@ -1,6 +1,7 @@
 /*
  * Copyright 2011 Google Inc.
  * Copyright 2014 Andreas Schildbach
+ * Copyright 2018 the bitcoinj-cash developers
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +14,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * This file has been modified by the bitcoinj-cash developers for the bitcoinj-cash project.
+ * The original file was from the bitcoinj project (https://github.com/bitcoinj/bitcoinj).
  */
 
 package org.bitcoinj.core;
@@ -677,9 +681,6 @@ public class Transaction extends ChildMessage {
             }
             s.append('\n');
         }
-        if (isOptInFullRBF()) {
-            s.append("  opts into full replace-by-fee\n");
-        }
         if (inputs.size() == 0) {
             s.append("  INCOMPLETE: No inputs!\n");
             return s.toString();
@@ -721,8 +722,6 @@ public class Transaction extends ChildMessage {
                 }
                 if (in.hasSequence()) {
                     s.append("\n          sequence:").append(Long.toHexString(in.getSequenceNumber()));
-                    if (in.isOptInFullRBF())
-                        s.append(", opts into full RBF");
                 }
             } catch (Exception e) {
                 s.append("[exception: ").append(e.getMessage()).append("]");
@@ -1596,17 +1595,6 @@ public class Transaction extends ChildMessage {
             return false;
         for (TransactionInput input : getInputs())
             if (input.hasSequence())
-                return true;
-        return false;
-    }
-
-    /**
-     * Returns whether this transaction will opt into the
-     * <a href="https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki">full replace-by-fee </a> semantics.
-     */
-    public boolean isOptInFullRBF() {
-        for (TransactionInput input : getInputs())
-            if (input.isOptInFullRBF())
                 return true;
         return false;
     }

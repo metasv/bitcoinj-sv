@@ -1,6 +1,7 @@
 /*
  * Copyright 2014 Google Inc.
  * Copyright 2016 Andreas Schildbach
+ * Copyright 2018 the bitcoinj-cash developers
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +14,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * This file has been modified by the bitcoinj-cash developers for the bitcoinj-cash project.
+ * The original file was from the bitcoinj project (https://github.com/bitcoinj/bitcoinj).
  */
 
 package org.bitcoinj.core;
@@ -369,16 +373,6 @@ public class TransactionTest {
         final int height = 224430;
         final Transaction transaction = PARAMS.getDefaultSerializer().makeTransaction(transactionBytes);
         transaction.checkCoinBaseHeight(height);
-    }
-
-    @Test
-    public void optInFullRBF() {
-        // a standard transaction as wallets would create
-        Transaction tx = FakeTxBuilder.createFakeTx(PARAMS);
-        assertFalse(tx.isOptInFullRBF());
-
-        tx.getInputs().get(0).setSequenceNumber(TransactionInput.NO_SEQUENCE - 2);
-        assertTrue(tx.isOptInFullRBF());
     }
 
     /**

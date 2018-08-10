@@ -138,6 +138,7 @@ public class PaymentChannelV1ClientState extends PaymentChannelClientState {
         if (multisigOutput.isDust())
             throw new ValueOutOfRangeException("totalValue too small to use");
         SendRequest req = SendRequest.forTx(template);
+        req.setUseForkId(true);
         req.coinSelector = AllowUnconfirmedCoinSelector.get();
         editContractSendRequest(req);
         req.shuffleOutputs = false;   // TODO: Fix things so shuffling is usable.
