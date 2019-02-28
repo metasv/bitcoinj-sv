@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-  <groupId>cash.bitcoinj</groupId>
+  <groupId>org.bitcoinj-sv</groupId>
   <artifactId>bitcoinj-parent</artifactId>
   <version>0.14-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -14,21 +14,15 @@
         <module>wallettemplate</module>
     </modules>
 
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>7</version>
-    </parent>
-
     <scm>
-        <connection>scm:git:https://github.com/bitcoinj-cash/bitcoinj</connection>
-        <developerConnection>scm:https://github.com/bitcoinj-cash/bitcoinj</developerConnection>
-        <url>scm:git:https://github.com/bitcoinj-cash/bitcoinj</url>
+        <connection>scm:git:https://github.com/bitcoinj-sv/bitcoinj-sv</connection>
+        <developerConnection>scm:https://github.com/bitcoinj-sv/bitcoinj-sv</developerConnection>
+        <url>scm:git:https://github.com/bitcoinj-sv/bitcoinj-sv</url>
     </scm>
 
-    <name>bitcoinj Parent</name>
-    <description>Provides the common configuration for the BitCoinJ modules</description>
-    <url>http://bitcoinj.cash/</url>
+    <name>bitcoinj-sv root</name>
+    <description>Provides the common configuration for the BitcoinJ-SV modules</description>
+    <url>http://bitcoinj-sv.org/</url>
 
     <licenses>
         <license>
@@ -41,15 +35,8 @@
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/bitcoinj-cash/bitcoinj/issues</url>
+        <url>https://github.com/bitcoinj-sv/bitcoinj-sv/issues</url>
     </issueManagement>
-
-    <mailingLists>
-        <mailingList>
-            <name>bitcoinj.cash Google Group</name>
-            <post>https://groups.google.com/forum/#!forum/bitcoinj-cash</post>
-        </mailingList>
-    </mailingLists>
 
     <prerequisites>
         <maven>3.0.4</maven>
@@ -63,18 +50,6 @@
         <skipUnitTests>${skipTests}</skipUnitTests>
         <skipIntegrationTests>${skipTests}</skipIntegrationTests>
     </properties>
-
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <!-- Common build plugin configuration -->
     <build>
@@ -103,18 +78,6 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <notimestamp>true</notimestamp>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.5</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
             </plugin>
         </plugins>
@@ -269,5 +232,4 @@
             </build>
         </profile>
     </profiles>
-
 </project>

@@ -19,16 +19,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <groupId>cash.bitcoinj</groupId>
+    <groupId>org.bitcoinj-sv</groupId>
     <artifactId>bitcoinj-parent</artifactId>
     <version>0.14-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>bitcoinj-tools</artifactId>
+  <artifactId>bitcoinj-sv-tools</artifactId>
 
-  <name>bitcoincashj Tools</name>
-  <description>A collection of useful tools that use the bitcoinj.cash library to perform wallet operations</description>
+  <name>bitcoinj-sv Tools</name>
+  <description>A collection of useful tools that use the bitcoinj-sv library to perform wallet operations</description>
 
   <build>
 
@@ -92,8 +92,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>cash.bitcoinj</groupId>
-      <artifactId>bitcoinj-core</artifactId>
+      <groupId>org.bitcoinj-sv</groupId>
+      <artifactId>bitcoinj-sv</artifactId>
       <version>${project.parent.version}</version>
     </dependency>
     <dependency>

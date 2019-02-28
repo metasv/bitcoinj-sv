@@ -20,19 +20,19 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>cash.bitcoinj</groupId>
+        <groupId>org.bitcoinj-sv</groupId>
         <artifactId>bitcoinj-parent</artifactId>
         <version>0.14-SNAPSHOT</version>
     </parent>
 
-    <artifactId>bitcoinj-core</artifactId>
+    <artifactId>bitcoinj-sv</artifactId>
 
-    <name>bitcoinj</name>
-    <description>A Java Bitcoin library</description>
+    <name>bitcoinj-sv</name>
+    <description>A Java Bitcoin SV library</description>
 
     <packaging>jar</packaging>
 
-    <url>https://bitcoinj.cash</url>
+    <url>https://bitcoinj-sv.org</url>
 
     <licenses>
         <license>
@@ -41,14 +41,6 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
-    <!-- Dummy block to make Maven Central happy: authors list is in AUTHORS -->
-    <developers>
-        <developer>
-            <name>The bitcoinj.cash team</name>
-            <email>bitcoinj-cash@googlegroups.com</email>
-        </developer>
-    </developers>
 
     <properties>
         <sonar.exclusions>**/*Protos.java,**/ClientState.java,**/ServerState.java</sonar.exclusions>
@@ -143,12 +135,11 @@
 
     <build>
         <plugins>
-            <!-- Ensure compilation is done under Java 7 -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
 
