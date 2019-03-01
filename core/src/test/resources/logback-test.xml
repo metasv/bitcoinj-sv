@@ -11,7 +11,7 @@
         to debug tests you might need to increase this, but be aware that a lot of logs are produced
         including intentional warnings and errors
     -->
-    <root level="INFO">
+    <root level="OFF">
         <appender-ref ref="STDOUT" />
     </root>
 
