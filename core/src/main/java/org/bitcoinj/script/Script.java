@@ -101,12 +101,9 @@ public class Script {
     // For instance, the SIGHASH_FORKID Flag forces the Script engine to expect all the Signatures to have the SIGHASH
     // FORK ID bit set. The REPLAY_PROTECTION flag, on the other hand, changes the way the Transaction Hash is
     // calculated.
-    // A possible solution might be to parameterize all the calls to the Script Engine, adding the Flags as a new
-    // parameter, and refactor the whole project so every single call needs to acknowledge the Verification Flags used.
-    // This refactoring is a possible solution. At this moment, and in order not to break the existing code and the
-    // legacy tests, we remove from the SET those flags which affect the Script the most and might break the legacy code
+    // The SIGHASH_FORKID must always be set for Bitcoin SV transactions.
 
-    public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.complementOf(EnumSet.of(VerifyFlag.SIGHASH_FORKID, VerifyFlag.REPLAY_PROTECTION));
+    public static final EnumSet<VerifyFlag> ALL_VERIFY_FLAGS = EnumSet.complementOf(EnumSet.of(VerifyFlag.REPLAY_PROTECTION));
 
 
     private static final Logger log = LoggerFactory.getLogger(Script.class);
