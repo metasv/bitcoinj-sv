@@ -74,7 +74,7 @@ public class MainNetParams extends AbstractBitcoinNetParams {
         checkpoints.put(478559, Sha256Hash.wrap("000000000000000000651ef99cb9fcbe0dadde1d424bd9f15ff20136191a5eec"));
 
         dnsSeeds = new String[] {
-                "seed.bitcoinsv.org",
+                "seed.bitcoinsv.io",
                 "seed.cascharia.com",
                 "seed.satoshivision.network"
         };
