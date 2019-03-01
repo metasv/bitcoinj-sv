@@ -78,6 +78,7 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <configuration>
                     <notimestamp>true</notimestamp>
+                    <additionalJOption>-Xdoclint:none</additionalJOption>
                 </configuration>
             </plugin>
         </plugins>
