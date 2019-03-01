@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/bitcoinj-sv/bitcoinj-sv.png)](https://travis-ci.org/bitcoinj-sv/bitcoinj-sv)   [![Coverage Status](https://coveralls.io/repos/github/bitcoinj-cash/bitcoinj/badge.svg?branch=cash-0.14)](https://coveralls.io/github/bitcoinj-cash/bitcoinj?branch=cash-0.14) [![Javadocs](http://www.javadoc.io/badge/cash.bitcoinj/bitcoinj-core.svg)](http://www.javadoc.io/doc/cash.bitcoinj/bitcoinj-core) 
+[![Build Status](https://travis-ci.org/bitcoinj-sv/bitcoinj-sv.png)](https://travis-ci.org/bitcoinj-sv/bitcoinj-sv)   [![Coverage Status](https://coveralls.io/repos/github/bitcoinj-sv/bitcoinj-sv/badge.svg)](https://coveralls.io/github/bitcoinj-sv/bitcoinj-sv) 
 
 ### NOTICE
 The bitcoinj-sv library will be undergoing major changes for version 1.0.0. This version, 0.9.0, has been released 
