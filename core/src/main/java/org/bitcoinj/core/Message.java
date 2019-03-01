@@ -36,7 +36,8 @@ import static com.google.common.base.Preconditions.checkState;
 public abstract class Message {
     private static final Logger log = LoggerFactory.getLogger(Message.class);
 
-    public static final int MAX_SIZE = 0x02000000; // 32MB
+    // TODO: there is a smaller max size for non-block messages
+    public static final int MAX_SIZE = Block.MAX_BLOCK_SIZE;
 
     public static final int UNKNOWN_LENGTH = Integer.MIN_VALUE;
 

@@ -30,8 +30,9 @@ public abstract class AbstractRuleCheckerFactory {
 
     public abstract RulesPoolChecker getRuleChecker(StoredBlock storedPrev, Block nextBlock);
 
-    protected boolean isTestNet() {
-        return NetworkParameters.ID_TESTNET.equals(networkParameters.getId());
+    protected boolean allowEasyBlocks() {
+        return NetworkParameters.ID_TESTNET.equals(networkParameters.getId())
+                || NetworkParameters.ID_SCALINGTESTNET.equals(networkParameters.getId());
     }
 
 }

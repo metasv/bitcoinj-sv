@@ -34,7 +34,7 @@ public class DAARuleCheckerFactory extends AbstractRuleCheckerFactory {
     @Override
     public RulesPoolChecker getRuleChecker(StoredBlock storedPrev, Block nextBlock) {
         RulesPoolChecker rulesChecker = new RulesPoolChecker(networkParameters);
-        if (isTestNet() && TestNet3Params.isValidTestnetDateBlock(nextBlock)) {
+        if (allowEasyBlocks() && TestNet3Params.isValidTestnetDateBlock(nextBlock)) {
             rulesChecker.addRule(new MinimalDifficultyRuleChecker(networkParameters));
         } else {
             rulesChecker.addRule(new NewDifficultyAdjustmentAlgorithmRulesChecker(networkParameters));

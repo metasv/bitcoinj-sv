@@ -26,6 +26,7 @@ public class MainnetDownloadIT {
 
     @Before
     public void setup() throws InterruptedException, BlockStoreException {
+        Utils.mockTime = null;
         if (data == null) {
             data = new DownloadedChainData(new MainNetParams());
             data.setupAndSync(null);

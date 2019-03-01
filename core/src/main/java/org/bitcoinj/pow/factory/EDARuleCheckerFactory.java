@@ -52,7 +52,7 @@ public class EDARuleCheckerFactory extends AbstractRuleCheckerFactory {
 
     private RulesPoolChecker getNoTransitionPointRulesChecker(StoredBlock storedPrev, Block nextBlock) {
         RulesPoolChecker rulesChecker = new RulesPoolChecker(networkParameters);
-        if (isTestNet() && TestNet3Params.isValidTestnetDateBlock(nextBlock)) {
+        if (allowEasyBlocks() && TestNet3Params.isValidTestnetDateBlock(nextBlock)) {
             rulesChecker.addRule(new LastNonMinimalDifficultyRuleChecker(networkParameters));
         } else {
             if (AbstractPowRulesChecker.hasEqualDifficulty(

@@ -57,7 +57,7 @@ public class DownloadedChainData {
         this.connectionManager = new BlockingClientManager();
         this.peerGroup = new PeerGroup(context, blockChain, connectionManager);
         peerGroup.addPeerDiscovery(new DnsDiscovery(parameters));
-        peerGroup.setFastCatchupTimeSecs(Utils.currentTimeSeconds()-600);
+        peerGroup.setFastCatchupTimeSecs(Utils.currentTimeSeconds()-3600);
 
         DownloadProgressTracker listener = new DownloadProgressTracker();
         peerGroup.start();
