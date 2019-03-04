@@ -1,8 +1,7 @@
 [![Build Status](https://travis-ci.org/bitcoinj-sv/bitcoinj-sv.png)](https://travis-ci.org/bitcoinj-sv/bitcoinj-sv)   [![Coverage Status](https://coveralls.io/repos/github/bitcoinj-sv/bitcoinj-sv/badge.svg)](https://coveralls.io/github/bitcoinj-sv/bitcoinj-sv) 
 
 ### NOTICE
-The bitcoinj-sv library will be undergoing major changes for version 1.0.0. This version, 0.9.0, has been released 
-with minor changes as a temporary measure.
+This is a work in progress. It is not ready for release and I don't advise using it yet. It's future is also uncertain at this time.
 
 ### Welcome to bitcoinj-sv
 
