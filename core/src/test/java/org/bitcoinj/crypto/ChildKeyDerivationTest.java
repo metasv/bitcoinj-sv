@@ -20,7 +20,7 @@ package org.bitcoinj.crypto;
 import org.bitcoinj.core.*;
 import org.bitcoinj.params.*;
 import org.junit.*;
-import org.spongycastle.crypto.params.*;
+import org.bouncycastle.crypto.params.*;
 
 import static org.bitcoinj.core.Utils.*;
 import static org.junit.Assert.*;
@@ -136,7 +136,7 @@ public class ChildKeyDerivationTest {
 
     @Test
     public void encryptedDerivation() throws Exception {
-        // Check that encrypting a parent key in the heirarchy and then deriving from it yields a DeterministicKey
+        // Check that encrypting a parent key in the hierarchy and then deriving from it yields a DeterministicKey
         // with no private key component, and that the private key bytes are derived on demand.
         KeyCrypter scrypter = new KeyCrypterScrypt();
         KeyParameter aesKey = scrypter.deriveKey("we never went to the moon");

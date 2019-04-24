@@ -25,7 +25,7 @@ import com.google.common.io.BaseEncoding;
 import com.google.common.io.Resources;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.UnsignedLongs;
-import org.spongycastle.crypto.digests.RIPEMD160Digest;
+import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -57,7 +57,7 @@ public class Utils {
     // zero length arrays are immutable so we can save some object allocation by reusing the same instance.
     public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
 
-    private static final Joiner SPACE_JOINER = Joiner.on(" ");
+    public static final Joiner SPACE_JOINER = Joiner.on(" ");
 
     private static BlockingQueue<Boolean> mockSleepQueue;
 

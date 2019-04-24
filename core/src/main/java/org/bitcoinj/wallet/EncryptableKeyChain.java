@@ -18,7 +18,8 @@ package org.bitcoinj.wallet;
 
 import org.bitcoinj.crypto.KeyCrypter;
 import org.bitcoinj.crypto.KeyCrypterException;
-import org.spongycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.KeyParameter;
+
 
 import javax.annotation.Nullable;
 
@@ -28,7 +29,7 @@ import javax.annotation.Nullable;
 public interface EncryptableKeyChain extends KeyChain {
     /**
      * Takes the given password, which should be strong, derives a key from it and then invokes
-     * {@link #toEncrypted(org.bitcoinj.crypto.KeyCrypter, org.spongycastle.crypto.params.KeyParameter)} with
+     * {@link #toEncrypted(org.bitcoinj.crypto.KeyCrypter, org.bouncycastle.crypto.params.KeyParameter)} with
      * {@link org.bitcoinj.crypto.KeyCrypterScrypt} as the crypter.
      *
      * @return The derived key, in case you wish to cache it for future use.
@@ -42,7 +43,7 @@ public interface EncryptableKeyChain extends KeyChain {
     EncryptableKeyChain toEncrypted(KeyCrypter keyCrypter, KeyParameter aesKey);
 
     /**
-     * Decrypts the key chain with the given password. See {@link #toDecrypted(org.spongycastle.crypto.params.KeyParameter)}
+     * Decrypts the key chain with the given password. See {@link #toDecrypted(org.bouncycastle.crypto.params.KeyParameter)}
      * for details.
      */
     EncryptableKeyChain toDecrypted(CharSequence password);

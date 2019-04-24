@@ -72,7 +72,7 @@ import org.bitcoinj.wallet.listeners.WalletCoinsSentEventListener;
 import org.bitcoinj.wallet.listeners.WalletEventListener;
 import org.bitcoinj.wallet.listeners.WalletReorganizeEventListener;
 import org.slf4j.*;
-import org.spongycastle.crypto.params.*;
+import org.bouncycastle.crypto.params.*;
 
 import javax.annotation.*;
 import java.io.*;
@@ -3209,7 +3209,7 @@ public class Wallet extends BaseTaggableObject
             final Date keyRotationTime = getKeyRotationTime();
             if (keyRotationTime != null)
                 builder.append("Key rotation time:      ").append(Utils.dateTimeFormat(keyRotationTime)).append('\n');
-            builder.append(keyChainGroup.toString(includePrivateKeys));
+            builder.append(keyChainGroup.toString(includePrivateKeys, null));
 
             if (!watchedScripts.isEmpty()) {
                 builder.append("\nWatched scripts:\n");
@@ -3875,6 +3875,7 @@ public class Wallet extends BaseTaggableObject
      * @throws MultipleOpReturnRequested if there is more than one OP_RETURN output for the resultant transaction.
      */
     public SendResult sendCoins(SendRequest request) throws InsufficientMoneyException {
+        request.setUseForkId(true);
         TransactionBroadcaster broadcaster = vTransactionBroadcaster;
         checkState(broadcaster != null, "No transaction broadcaster is configured");
         return sendCoins(broadcaster, request);

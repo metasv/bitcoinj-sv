@@ -26,7 +26,7 @@ import org.bitcoinj.wallet.listeners.KeyChainEventListener;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
-import org.spongycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.KeyParameter;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -435,7 +435,7 @@ public class BasicKeyChain implements EncryptableKeyChain {
 
     /**
      * Convenience wrapper around {@link #toEncrypted(org.bitcoinj.crypto.KeyCrypter,
-     * org.spongycastle.crypto.params.KeyParameter)} which uses the default Scrypt key derivation algorithm and
+     * org.bouncycastle.crypto.params.KeyParameter)} which uses the default Scrypt key derivation algorithm and
      * parameters, derives a key from the given password and returns the created key.
      */
     @Override

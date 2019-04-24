@@ -37,22 +37,23 @@ import org.bitcoinj.wallet.Protos;
 import org.bitcoinj.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.asn1.*;
-import org.spongycastle.asn1.x9.X9ECParameters;
-import org.spongycastle.asn1.x9.X9IntegerConverter;
-import org.spongycastle.crypto.AsymmetricCipherKeyPair;
-import org.spongycastle.crypto.digests.SHA256Digest;
-import org.spongycastle.crypto.ec.CustomNamedCurves;
-import org.spongycastle.crypto.generators.ECKeyPairGenerator;
-import org.spongycastle.crypto.params.*;
-import org.spongycastle.crypto.signers.ECDSASigner;
-import org.spongycastle.crypto.signers.HMacDSAKCalculator;
-import org.spongycastle.math.ec.ECAlgorithms;
-import org.spongycastle.math.ec.ECPoint;
-import org.spongycastle.math.ec.FixedPointCombMultiplier;
-import org.spongycastle.math.ec.FixedPointUtil;
-import org.spongycastle.math.ec.custom.sec.SecP256K1Curve;
-import org.spongycastle.util.encoders.Base64;
+import org.bouncycastle.asn1.*;
+import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.asn1.x9.X9IntegerConverter;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.ec.CustomNamedCurves;
+import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
+import org.bouncycastle.crypto.params.*;
+import org.bouncycastle.crypto.signers.ECDSASigner;
+import org.bouncycastle.crypto.signers.HMacDSAKCalculator;
+import org.bouncycastle.math.ec.ECAlgorithms;
+import org.bouncycastle.math.ec.ECPoint;
+import org.bouncycastle.math.ec.FixedPointCombMultiplier;
+import org.bouncycastle.math.ec.FixedPointUtil;
+import org.bouncycastle.math.ec.custom.sec.SecP256K1Curve;
+import org.bouncycastle.util.Properties;
+import org.bouncycastle.util.encoders.Base64;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayOutputStream;
@@ -144,7 +145,7 @@ public class ECKey implements EncryptableItem {
         // Tell Bouncy Castle to precompute data that's needed during secp256k1 calculations. Increasing the width
         // number makes calculations faster, but at a cost of extra memory usage and with decreasing returns. 12 was
         // picked after consulting with the BC team.
-        FixedPointUtil.precompute(CURVE_PARAMS.getG(), 12);
+        FixedPointUtil.precompute(CURVE_PARAMS.getG());
         CURVE = new ECDomainParameters(CURVE_PARAMS.getCurve(), CURVE_PARAMS.getG(), CURVE_PARAMS.getN(),
                 CURVE_PARAMS.getH());
         HALF_CURVE_ORDER = CURVE_PARAMS.getN().shiftRight(1);
@@ -1232,15 +1233,15 @@ public class ECKey implements EncryptableItem {
 
     @Override
     public String toString() {
-        return toString(false, null);
+        return toString(false, null, null);
     }
 
     /**
      * Produce a string rendering of the ECKey INCLUDING the private key.
      * Unless you absolutely need the private key it is better for security reasons to just use {@link #toString()}.
      */
-    public String toStringWithPrivate(NetworkParameters params) {
-        return toString(true, params);
+    public String toStringWithPrivate(@Nullable KeyParameter aesKey, NetworkParameters params) {
+        return toString(true, aesKey, params);
     }
 
     public String getPrivateKeyAsHex() {
@@ -1255,13 +1256,14 @@ public class ECKey implements EncryptableItem {
         return getPrivateKeyEncoded(params).toString();
     }
 
-    private String toString(boolean includePrivate, NetworkParameters params) {
+    private String toString(boolean includePrivate, @Nullable KeyParameter aesKey, NetworkParameters params) {
         final MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this).omitNullValues();
         helper.add("pub HEX", getPublicKeyAsHex());
         if (includePrivate) {
+            ECKey decryptedKey = isEncrypted() ? decrypt(checkNotNull(aesKey)) : this;
             try {
-                helper.add("priv HEX", getPrivateKeyAsHex());
-                helper.add("priv WIF", getPrivateKeyAsWiF(params));
+                helper.add("priv HEX", decryptedKey.getPrivateKeyAsHex());
+                helper.add("priv WIF", decryptedKey.getPrivateKeyAsWiF(params));
             } catch (IllegalStateException e) {
                 // TODO: Make hasPrivKey() work for deterministic keys and fix this.
             } catch (Exception e) {
@@ -1279,7 +1281,8 @@ public class ECKey implements EncryptableItem {
         return helper.toString();
     }
 
-    public void formatKeyWithAddress(boolean includePrivateKeys, StringBuilder builder, NetworkParameters params) {
+    public void formatKeyWithAddress(boolean includePrivateKeys, @Nullable KeyParameter aesKey, StringBuilder builder,
+            NetworkParameters params) {
         final Address address = toAddress(params);
         builder.append("  addr:");
         builder.append(address.toString());
@@ -1290,7 +1293,7 @@ public class ECKey implements EncryptableItem {
         builder.append("\n");
         if (includePrivateKeys) {
             builder.append("  ");
-            builder.append(toStringWithPrivate(params));
+            builder.append(toStringWithPrivate(aesKey, params));
             builder.append("\n");
         }
     }

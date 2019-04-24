@@ -36,7 +36,7 @@ import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.KeyParameter;
 
 import javax.annotation.Nullable;
 import java.io.*;
@@ -112,7 +112,7 @@ public class Transaction extends ChildMessage {
      * If using this feePerKb, transactions will get confirmed within the next couple of blocks.
      * This should be adjusted from time to time. Last adjustment: March 2016.
      */
-    public static final Coin DEFAULT_TX_FEE = Coin.valueOf(5000); // 0.5 mBTC
+    public static final Coin DEFAULT_TX_FEE = Coin.valueOf(1000); // 0.01 mBTC
 
     /**
      * Any standard (ie pay-to-address) output smaller than this value (in satoshis) will most likely be rejected by the network.
