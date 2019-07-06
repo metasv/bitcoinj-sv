@@ -18,7 +18,6 @@ package org.bitcoinj.uri;
 
 import org.bitcoinj.core.Address;
 import org.bitcoinj.core.AddressFormatException;
-import org.bitcoinj.core.CashAddressFactory;
 import org.bitcoinj.core.Coin;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.AbstractBitcoinNetParams;
@@ -179,13 +178,7 @@ public class BitcoinURI {
                 Address address = Address.fromBase58(params, addressToken);
                 putWithValidation(FIELD_ADDRESS, address);
             } catch (final AddressFormatException e) {
-                try {
-                    Address address = CashAddressFactory.create().getFromFormattedAddress(params, correctScheme + addressToken);
-                    putWithValidation(FIELD_ADDRESS, address);
-                }
-                catch(AddressFormatException cae) {
-                    throw new BitcoinURIParseException("Bad address", cae);
-                }
+                throw new BitcoinURIParseException("Bad address", e);
             }
         }
 

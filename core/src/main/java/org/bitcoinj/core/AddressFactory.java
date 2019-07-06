@@ -39,13 +39,9 @@ public class AddressFactory {
      */
     public Address getAddress(NetworkParameters params, String plainAddress) {
         try {
-            return CashAddressFactory.create().getFromFormattedAddress(params, plainAddress);
+            return Address.fromBase58(params, plainAddress);
         } catch (AddressFormatException x) {
-            try {
-                return Address.fromBase58(params, plainAddress);
-            } catch (AddressFormatException x2) {
-                throw new AddressFormatException("Address " + plainAddress + " does not match cash (" + x.getMessage() + ") or legacy formats (" + x2.getMessage());
-            }
+            throw new AddressFormatException("Address " + plainAddress + " does not format (" + x.getMessage());
         }
     }
 }
