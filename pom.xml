@@ -11,7 +11,6 @@
         <module>core</module>
         <module>examples</module>
         <module>tools</module>
-        <module>wallettemplate</module>
     </modules>
 
     <scm>
@@ -53,6 +52,13 @@
 
     <!-- Common build plugin configuration -->
     <build>
+        <extensions>
+            <extension>
+                <groupId>org.springframework.build</groupId>
+                <artifactId>aws-maven</artifactId>
+                <version>5.0.0.RELEASE</version>
+            </extension>
+        </extensions>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -158,6 +164,17 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
+    <distributionManagement>
+        <snapshotRepository>
+            <id>aws-snapshot</id>
+            <url>s3://maven.huobi.jp/snapshot</url>
+        </snapshotRepository>
+        <repository>
+            <id>aws-release</id>
+            <url>s3://maven.huobi.jp/release</url>
+        </repository>
+    </distributionManagement>
 
     <!-- common dependencies -->
     <dependencies>
