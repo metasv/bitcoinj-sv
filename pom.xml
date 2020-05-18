@@ -58,6 +58,11 @@
                 <artifactId>aws-maven</artifactId>
                 <version>5.0.0.RELEASE</version>
             </extension>
+            <extension>
+                <groupId>com.gkatzioura.maven.cloud</groupId>
+                <artifactId>s3-storage-wagon</artifactId>
+                <version>1.0</version>
+        </extension>
         </extensions>
         <plugins>
             <plugin>
@@ -167,12 +172,12 @@
 
     <distributionManagement>
         <snapshotRepository>
-            <id>aws-snapshot</id>
-            <url>s3://maven.huobi.jp/snapshot</url>
+            <id>satomoto-maven-global-snapshot</id>
+            <url>s3://satomoto-maven-global/snapshot</url>
         </snapshotRepository>
         <repository>
-            <id>aws-release</id>
-            <url>s3://maven.huobi.jp/release</url>
+            <id>satomoto-maven-global-release</id>
+            <url>s3://satomoto-maven-global/release</url>
         </repository>
     </distributionManagement>
 
