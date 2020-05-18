@@ -54,15 +54,10 @@
     <build>
         <extensions>
             <extension>
-                <groupId>org.springframework.build</groupId>
-                <artifactId>aws-maven</artifactId>
-                <version>5.0.0.RELEASE</version>
-            </extension>
-            <extension>
                 <groupId>com.gkatzioura.maven.cloud</groupId>
                 <artifactId>s3-storage-wagon</artifactId>
                 <version>1.0</version>
-        </extension>
+            </extension>
         </extensions>
         <plugins>
             <plugin>
