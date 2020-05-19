@@ -1,11 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.bitcoinj-sv</groupId>
-  <artifactId>bitcoinj-parent</artifactId>
-  <version>0.9.0</version>
-  <packaging>pom</packaging>
+    <groupId>org.bitcoinj-sv</groupId>
+    <artifactId>bitcoinj-parent</artifactId>
+    <version>0.9.0</version>
+    <packaging>pom</packaging>
 
     <modules>
         <module>core</module>
@@ -166,10 +166,6 @@
     </dependencyManagement>
 
     <distributionManagement>
-        <snapshotRepository>
-            <id>satomoto-maven-global-snapshot</id>
-            <url>s3://satomoto-maven-global/snapshot</url>
-        </snapshotRepository>
         <repository>
             <id>satomoto-maven-global-release</id>
             <url>s3://satomoto-maven-global/release</url>
