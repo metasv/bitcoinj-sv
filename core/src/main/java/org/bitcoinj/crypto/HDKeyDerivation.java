@@ -18,7 +18,7 @@ package org.bitcoinj.crypto;
 
 import com.google.common.collect.*;
 import org.bitcoinj.core.*;
-import org.spongycastle.math.ec.*;
+import org.bouncycastle.math.ec.ECPoint;
 
 import java.math.*;
 import java.nio.*;
@@ -81,11 +81,21 @@ public final class HDKeyDerivation {
     /**
      * @throws HDDerivationException if privKeyBytes is invalid (0 or >= n).
      */
-    public static DeterministicKey createMasterPrivKeyFromBytes(byte[] privKeyBytes, byte[] chainCode) throws HDDerivationException {
+    public static DeterministicKey createMasterPrivKeyFromBytes(byte[] privKeyBytes, byte[] chainCode)
+            throws HDDerivationException {
+        // childNumberPath is an empty list because we are creating the root key.
+        return createMasterPrivKeyFromBytes(privKeyBytes, chainCode, ImmutableList.<ChildNumber> of());
+    }
+
+    /**
+     * @throws HDDerivationException if privKeyBytes is invalid (0 or >= n).
+     */
+    public static DeterministicKey createMasterPrivKeyFromBytes(byte[] privKeyBytes, byte[] chainCode,
+            ImmutableList<ChildNumber> childNumberPath) throws HDDerivationException {
         BigInteger priv = new BigInteger(1, privKeyBytes);
         assertNonZero(priv, "Generated master key is invalid.");
         assertLessThanN(priv, "Generated master key is invalid.");
-        return new DeterministicKey(ImmutableList.<ChildNumber>of(), chainCode, priv, null);
+        return new DeterministicKey(childNumberPath, chainCode, priv, null);
     }
 
     public static DeterministicKey createMasterPubKeyFromBytes(byte[] pubKeyBytes, byte[] chainCode) {
@@ -94,11 +104,11 @@ public final class HDKeyDerivation {
 
     /**
      * Derives a key given the "extended" child number, ie. the 0x80000000 bit of the value that you
-     * pass for <code>childNumber</code> will determine whether to use hardened derivation or not.
+     * pass for {@code childNumber} will determine whether to use hardened derivation or not.
      * Consider whether your code would benefit from the clarity of the equivalent, but explicit, form
-     * of this method that takes a <code>ChildNumber</code> rather than an <code>int</code>, for example:
-     * <code>deriveChildKey(parent, new ChildNumber(childNumber, true))</code>
-     * where the value of the hardened bit of <code>childNumber</code> is zero.
+     * of this method that takes a {@code ChildNumber} rather than an {@code int}, for example:
+     * {@code deriveChildKey(parent, new ChildNumber(childNumber, true))}
+     * where the value of the hardened bit of {@code childNumber} is zero.
      */
     public static DeterministicKey deriveChildKey(DeterministicKey parent, int childNumber) {
         return deriveChildKey(parent, new ChildNumber(childNumber));

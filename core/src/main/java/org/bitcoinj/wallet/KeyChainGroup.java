@@ -25,7 +25,7 @@ import org.bitcoinj.script.*;
 import org.bitcoinj.utils.*;
 import org.bitcoinj.wallet.listeners.KeyChainEventListener;
 import org.slf4j.*;
-import org.spongycastle.crypto.params.*;
+import org.bouncycastle.crypto.params.*;
 
 import javax.annotation.*;
 import java.security.*;
@@ -85,11 +85,27 @@ public class KeyChainGroup implements KeyBag {
     }
 
     /**
+     * Creates a keychain group with no basic chain, and an HD chain initialized from the given seed. Account path is
+     * provided.
+     */
+    public KeyChainGroup(NetworkParameters params, DeterministicSeed seed, ImmutableList<ChildNumber> accountPath) {
+        this(params, null, ImmutableList.of(new DeterministicKeyChain(seed, accountPath)), null, null);
+    }
+
+    /**
      * Creates a keychain group with no basic chain, and an HD chain that is watching the given watching key.
      * This HAS to be an account key as returned by {@link DeterministicKeyChain#getWatchingKey()}.
      */
     public KeyChainGroup(NetworkParameters params, DeterministicKey watchKey) {
         this(params, null, ImmutableList.of(DeterministicKeyChain.watch(watchKey)), null, null);
+    }
+
+    /**
+     * Creates a keychain group with no basic chain, and an HD chain that is watching or spending the given key.
+     * This HAS to be an account key as returned by {@link DeterministicKeyChain#getWatchingKey()}.
+     */
+    public KeyChainGroup(NetworkParameters params, DeterministicKey accountKey, boolean watch) {
+        this(params, null, ImmutableList.of(watch ? DeterministicKeyChain.watch(accountKey) : DeterministicKeyChain.spend(accountKey)), null, null);
     }
 
     // Used for deserialization.
@@ -785,16 +801,16 @@ public class KeyChainGroup implements KeyBag {
         }
     }
 
-    public String toString(boolean includePrivateKeys) {
+    public String toString(boolean includePrivateKeys, @Nullable KeyParameter aesKey) {
         final StringBuilder builder = new StringBuilder();
         if (basic != null) {
             List<ECKey> keys = basic.getKeys();
             Collections.sort(keys, ECKey.AGE_COMPARATOR);
             for (ECKey key : keys)
-                key.formatKeyWithAddress(includePrivateKeys, builder, params);
+                key.formatKeyWithAddress(includePrivateKeys, aesKey, builder, params);
         }
         for (DeterministicKeyChain chain : chains)
-            builder.append(chain.toString(includePrivateKeys, params)).append('\n');
+            builder.append(chain.toString(includePrivateKeys, aesKey, params)).append('\n');
         return builder.toString();
     }
 

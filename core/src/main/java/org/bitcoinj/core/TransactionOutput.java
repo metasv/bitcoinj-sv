@@ -411,7 +411,7 @@ public class TransactionOutput extends ChildMessage {
 
     /** Returns a copy of the output detached from its containing transaction, if need be. */
     public TransactionOutput duplicateDetached() {
-        return new TransactionOutput(params, null, Coin.valueOf(value), org.spongycastle.util.Arrays.clone(scriptBytes));
+        return new TransactionOutput(params, null, Coin.valueOf(value), org.bouncycastle.util.Arrays.clone(scriptBytes));
     }
 
     @Override

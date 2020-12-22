@@ -1677,7 +1677,9 @@ public class Peer extends PeerSocketHandler {
      * @return the height of the best chain as claimed by peer: sum of its ver announcement and blocks announced since.
      */
     public long getBestHeight() {
-        return vPeerVersionMessage.bestHeight + blocksAnnounced.get();
+        if(vPeerVersionMessage != null)
+            return vPeerVersionMessage.bestHeight + blocksAnnounced.get();
+        return 0L;
     }
 
     /**

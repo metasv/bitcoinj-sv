@@ -26,8 +26,8 @@ import org.bitcoinj.wallet.listeners.KeyChainEventListener;
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
-import org.spongycastle.crypto.params.KeyParameter;
-import org.spongycastle.util.Arrays;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.util.Arrays;
 
 import java.math.BigInteger;
 import java.util.List;

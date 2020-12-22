@@ -44,7 +44,7 @@ public class TransactionBroadcast {
     private final PeerGroup peerGroup;
     private final Transaction tx;
     private int minConnections;
-    private int numWaitingFor;
+    private final int numWaitingFor = 1;
 
     /** Used for shuffling the peers before broadcast: unit tests can replace this to make themselves deterministic. */
     @VisibleForTesting
@@ -116,8 +116,15 @@ public class TransactionBroadcast {
     }
 
     private class EnoughAvailablePeers implements Runnable {
+        private Context context;
+
+        public EnoughAvailablePeers() {
+            this.context = Context.get();
+        }
+
         @Override
         public void run() {
+            Context.propagate(context);
             // We now have enough connected peers to send the transaction.
             // This can be called immediately if we already have enough. Otherwise it'll be called from a peer
             // thread.
@@ -141,8 +148,7 @@ public class TransactionBroadcast {
             // our version message, as SPV nodes cannot relay it doesn't give away any additional information
             // to skip the inv here - we wouldn't send invs anyway.
             int numConnected = peers.size();
-            int numToBroadcastTo = (int) Math.max(1, Math.round(Math.ceil(peers.size() / 2.0)));
-            numWaitingFor = (int) Math.ceil((peers.size() - numToBroadcastTo) / 2.0);
+            int numToBroadcastTo = numConnected;
             Collections.shuffle(peers, random);
             peers = peers.subList(0, numToBroadcastTo);
             log.info("broadcastTransaction: We have {} peers, adding {} to the memory pool", numConnected, tx.getHashAsString());
